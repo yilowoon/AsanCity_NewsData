@@ -2,7 +2,7 @@ name: daily-collect
 
 on:
   schedule:
-    - cron: "0 23 * * *"   # 매일 07:00 (KST)
+    - cron: "0 23 * * *"   # 매일 08:00 (KST)
   workflow_dispatch:        # Actions 탭에서 수동 실행
 
 permissions:
