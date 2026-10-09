@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아산시 홍보 성과 분석</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #f8f9fb;
+  --border: #e3e7ee;
+  --text: #121826;
+  --text-2: #4a5263;
+  --muted: #7a8396;
+  --brand: #1d4f9c;
+  --brand-ink: #1d4f9c;
+  --brand-soft: #e8eff9;
+  --s-articles: #1d4f9c;
+  --s-views: #2f8a3b;
+  --s-accent: #e8891a;
+  --grid: #eceff4;
+  --up: #1f7a2e;
+  --down: #c03b3b;
+  --banner-bg: #fff4e5;
+  --banner-ink: #7a4100;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1218;
+    --surface: #171b23;
+    --surface-2: #1d222c;
+    --border: #2a303c;
+    --text: #f1f3f7;
+    --text-2: #c2c8d4;
+    --muted: #8f97a8;
+    --brand: #3d74c9;
+    --brand-ink: #8fb4ec;
+    --brand-soft: #1b2a42;
+    --s-articles: #4a82d6;
+    --s-views: #3f9e4c;
+    --s-accent: #e8891a;
+    --grid: #252a35;
+    --up: #5cc46b;
+    --down: #ef7b7b;
+    --banner-bg: #3a2a12;
+    --banner-ink: #ffcf8f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1218; --surface: #171b23; --surface-2: #1d222c; --border: #2a303c;
+  --text: #f1f3f7; --text-2: #c2c8d4; --muted: #8f97a8;
+  --brand: #3d74c9; --brand-ink: #8fb4ec; --brand-soft: #1b2a42;
+  --s-articles: #4a82d6; --s-views: #3f9e4c; --s-accent: #e8891a; --grid: #252a35;
+  --up: #5cc46b; --down: #ef7b7b; --banner-bg: #3a2a12; --banner-ink: #ffcf8f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: "Noto Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  font-size: 14px; line-height: 1.55;
+}
+a { color: var(--brand-ink); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+
+/* 헤더 */
+header.top { background: var(--surface); border-bottom: 1px solid var(--border); }
+header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 16px; padding-bottom: 16px; }
+.logo { width: 52px; height: 52px; border-radius: 10px; background: #fff; padding: 4px; object-fit: contain; flex: none; }
+.title-block h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.title-block p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.updated { color: var(--muted); font-size: 12px; text-align: right; }
+
+.banner {
+  background: var(--banner-bg); color: var(--banner-ink); font-weight: 500;
+  padding: 10px 0; font-size: 13px; border-bottom: 1px solid var(--border);
+}
+
+/* 필터 */
+.filters {
+  position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(6px); border-bottom: 1px solid var(--border);
+}
+.filters .wrap { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding-top: 12px; padding-bottom: 12px; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+.seg button {
+  border: 0; background: transparent; color: var(--text-2); font: inherit; font-size: 13px;
+  padding: 5px 11px; border-radius: 6px; cursor: pointer;
+}
+.seg button.on { background: var(--brand); color: #fff; font-weight: 500; }
+.field { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 13px; }
+input[type=date], select, input[type=search] {
+  font: inherit; font-size: 13px; color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px;
+}
+.btn {
+  font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+}
+.btn:hover { border-color: var(--brand); }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.filter-label { color: var(--muted); font-size: 12px; font-weight: 500; }
+
+main { padding: 20px 0 48px; }
+section { margin-bottom: 20px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+}
+.card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+.card .sub { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* KPI */
+.kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.kpi .label { color: var(--text-2); font-size: 12.5px; font-weight: 500; }
+.kpi .value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kpi .value small { font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 2px; }
+.kpi .delta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.delta .up { color: var(--up); font-weight: 600; }
+.delta .down { color: var(--down); font-weight: 600; }
+
+.chart-box { position: relative; height: 280px; }
+.chart-box.tall { height: 420px; }
+
+/* 요약 */
+.summary { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .summary { grid-template-columns: 1fr; } }
+.summary ul { margin: 0; padding-left: 18px; }
+.summary li { margin: 6px 0; color: var(--text-2); }
+.summary li b { color: var(--text); }
+.framework { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fw { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.fw .k { font-size: 12px; color: var(--muted); font-weight: 500; }
+.fw .v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fw .d { font-size: 11.5px; color: var(--muted); }
+
+/* 표 */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; background: var(--surface-2); position: sticky; top: 0; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.issue { cursor: pointer; }
+tr.issue:hover td { background: var(--surface-2); }
+tr.detail td { background: var(--surface-2); padding: 6px 10px 12px 36px; }
+tr.detail ul { margin: 0; padding-left: 16px; }
+tr.detail li { margin: 3px 0; color: var(--text-2); }
+.badge { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); white-space: nowrap; }
+.badge.l { background: var(--brand); color: #fff; border-color: var(--brand); }
+.badge.m { background: var(--brand-soft); color: var(--brand-ink); border-color: transparent; }
+.badge.s { color: var(--muted); }
+.topic-tag { font-size: 11.5px; color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+.caret { display: inline-block; width: 14px; color: var(--muted); }
+.na { color: var(--muted); }
+
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.toolbar .grow { flex: 1; }
+.pager { display: flex; gap: 6px; align-items: center; justify-content: flex-end; margin-top: 10px; color: var(--muted); font-size: 12.5px; }
+
+.notes { color: var(--muted); font-size: 12.5px; }
+.notes h3 { color: var(--text-2); font-size: 13px; margin: 0 0 6px; }
+.notes ul { margin: 0; padding-left: 18px; }
+.notes li { margin: 4px 0; }
+.empty { color: var(--muted); padding: 30px; text-align: center; }
+
+@media (max-width: 600px) {
+  .wrap { padding: 0 16px; }
+  .title-block h1 { font-size: 18px; }
+  .updated { display: none; }
+}
+@media print {
+  .filters, .btn, .pager, .toolbar input { display: none !important; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <img class="logo" src="assets/asan_logo.png" alt="아산시 심볼">
+    <div class="title-block">
+      <h1>아산시 홍보 사업 성과 분석 시스템</h1>
+      <p>아산시 관련 온라인 뉴스 보도량 · 이슈 확산 · 페이지 조회수 모니터링</p>
+    </div>
+    <div class="header-actions">
+      <div class="updated" id="updated"></div>
+      <button class="btn" id="themeBtn" title="화면 테마 전환">◐ 테마</button>
+      <button class="btn" onclick="window.print()">인쇄</button>
+    </div>
+  </div>
+</header>
+<div class="banner" id="sampleBanner" hidden>
+  <div class="wrap">⚠ 현재 화면은 <b>샘플 데이터</b>로 구성된 미리보기입니다. 매체명·기사·조회수는 실제 수집 자료가 아닙니다.</div>
+</div>
+
+<div class="filters">
+  <div class="wrap">
+    <span class="filter-label">기간</span>
+    <div class="seg" id="presets">
+      <button data-p="7">최근 7일</button>
+      <button data-p="30">최근 30일</button>
+      <button data-p="month">이번 달</button>
+      <button data-p="quarter">최근 3개월</button>
+      <button data-p="all" class="on">전체</button>
+    </div>
+    <span class="field"><input type="date" id="from"> ~ <input type="date" id="to"></span>
+    <span class="filter-label">집계 단위</span>
+    <div class="seg" id="grain">
+      <button data-g="day">일간</button>
+      <button data-g="week" class="on">주간</button>
+      <button data-g="month">월간</button>
+    </div>
+    <span class="field">주제 <select id="topic"><option value="">전체</option></select></span>
+  </div>
+</div>
+
+<main>
+<div class="wrap">
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="card">
+    <h2>보도 추이</h2>
+    <p class="sub" id="trendSub">기간 내 아산시 관련 기사 건수</p>
+    <div class="chart-box"><canvas id="trendChart" aria-label="보도 건수 추이"></canvas></div>
+  </section>
+
+  <section class="grid-2">
+    <div class="card">
+      <h2>확인 조회수 추이</h2>
+      <p class="sub">원문 페이지에 조회수를 공개한 기사만 합산</p>
+      <div class="chart-box"><canvas id="viewsChart" aria-label="조회수 추이"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>주제별 보도 분포</h2>
+      <p class="sub">제목·요약 키워드 기준 자동 분류</p>
+      <div class="chart-box"><canvas id="topicChart" aria-label="주제별 보도 건수"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>홍보 성과 요약</h2>
+    <p class="sub" id="summarySub"></p>
+    <div class="summary">
+      <ul id="summaryList"></ul>
+      <div class="framework" id="framework"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 id="periodTitle">주간 성과표</h2>
+    <p class="sub">집계 단위별 보도·확산·조회 지표와 직전 대비 증감</p>
+    <div class="table-wrap" style="max-height: 420px; overflow-y: auto;">
+      <table id="periodTable"></table>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="card">
+      <h2>매체별 보도 순위</h2>
+      <p class="sub">상위 15개 매체 · 기사 건수</p>
+      <div class="chart-box tall"><canvas id="pressChart" aria-label="매체별 보도 건수"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>매체별 확인 조회수</h2>
+      <p class="sub">조회수 공개 매체 상위 15개</p>
+      <div class="chart-box tall"><canvas id="pressViewsChart" aria-label="매체별 조회수"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>주요 이슈 (유사 제목 통합)</h2>
+    <p class="sub">제목이 유사한 기사를 하나의 이슈로 묶어 보도 건수·매체 수·조회수를 집계 · 행을 누르면 개별 기사 표시</p>
+    <div class="toolbar">
+      <input type="search" id="issueSearch" placeholder="이슈 제목 검색" class="grow">
+      <select id="issueSort">
+        <option value="cnt">기사 수 순</option>
+        <option value="press">매체 수 순</option>
+        <option value="views">조회수 순</option>
+        <option value="date">최신 순</option>
+      </select>
+      <button class="btn" id="issueCsv">CSV 내려받기</button>
+    </div>
+    <div class="table-wrap"><table id="issueTable"></table></div>
+    <div class="pager" id="issuePager"></div>
+  </section>
+
+  <section class="card">
+    <h2>기사 목록</h2>
+    <p class="sub">기간·주제 필터가 적용된 전체 기사</p>
+    <div class="toolbar">
+      <input type="search" id="articleSearch" placeholder="제목·매체 검색" class="grow">
+      <button class="btn" id="articleCsv">CSV 내려받기</button>
+    </div>
+    <div class="table-wrap"><table id="articleTable"></table></div>
+    <div class="pager" id="articlePager"></div>
+  </section>
+
+  <section class="card notes">
+    <h3>지표 정의 및 데이터 한계</h3>
+    <ul>
+      <li><b>보도 건수</b>: 네이버 뉴스 검색(API HUB)과 빅카인즈에서 수집한 아산시 관련 기사 수. 서울아산병원·아산재단 등 무관한 '아산'은 자동 제외합니다.</li>
+      <li><b>통합 이슈</b>: 3일 이내 보도된 기사 중 제목 유사도가 기준 이상인 기사를 하나의 이슈로 묶은 것. 보도자료 1건이 여러 매체에 실린 경우 하나의 이슈로 집계됩니다.</li>
+      <li><b>확산 등급</b>: 대(5개 매체 이상), 중(2~4개 매체), 소(1개 매체).</li>
+      <li><b>확인 조회수</b>: 기사 원문 페이지에 '조회수'를 공개한 매체에서만 수집한 값입니다. 포털·중앙 언론사의 조회수는 외부에 공개되지 않아 포함되지 않으며, 실제 노출 규모는 이보다 큽니다.</li>
+      <li><b>조회수 공개율</b>: 기간 내 기사 중 조회수를 확보한 기사의 비율. 조회수 지표는 이 비율과 함께 해석해야 합니다.</li>
+      <li>네이버 검색은 검색어별 최근 1,000건까지만 조회되므로 매일 수집해 누적합니다. 과거 기간은 빅카인즈 자료로 보강합니다.</li>
+    </ul>
+  </section>
+</div>
+</main>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const D = window.ASAN_DATA;
+if (!D) { document.querySelector("main .wrap").innerHTML = '<div class="empty">data.js 가 없습니다. <code>python run.py build</code> 를 실행하세요.</div>'; return; }
+
+// ---------- 데이터 준비 ----------
+const A = D.articles.map(r => ({ id: r[0], date: r[1], cluster: r[2], press: D.press[r[3]], title: r[4], url: r[5], views: r[6], topic: D.topics[r[7]] }));
+const allDates = A.map(a => a.date).sort();
+const minDate = allDates[0] || D.meta.startDate;
+const maxDate = allDates[allDates.length - 1] || D.meta.startDate;
+const fmt = n => n == null ? "–" : Math.round(n).toLocaleString("ko-KR");
+const pct = n => (n == null || !isFinite(n)) ? "–" : (n * 100).toFixed(1) + "%";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const toDate = s => new Date(s + "T00:00:00");
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const addDays = (s, n) => { const d = toDate(s); d.setDate(d.getDate() + n); return iso(d); };
+const daysBetween = (a, b) => Math.round((toDate(b) - toDate(a)) / 86400000) + 1;
+const weekStart = s => { const d = toDate(s); const w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return iso(d); };
+const bucketKey = (s, g) => g === "day" ? s : g === "week" ? weekStart(s) : s.slice(0, 7);
+const bucketLabel = (k, g) => {
+  if (g === "day") return `${+k.slice(5, 7)}/${+k.slice(8)}`;
+  if (g === "week") return `${+k.slice(5, 7)}/${+k.slice(8)}주`;
+  return `${k.slice(0, 4)}.${k.slice(5)}`;
+};
+const bucketTitle = (k, g) => {
+  if (g === "day") return k;
+  if (g === "week") return `${k} ~ ${addDays(k, 6)}`;
+  return `${k.slice(0, 4)}년 ${+k.slice(5)}월`;
+};
+const nextBucket = (k, g) => g === "day" ? addDays(k, 1) : g === "week" ? addDays(k, 7)
+  : (() => { let [y, m] = k.split("-").map(Number); m++; if (m > 12) { m = 1; y++; } return `${y}-${String(m).padStart(2, "0")}`; })();
+
+// ---------- 상태 ----------
+const state = { from: minDate, to: maxDate, grain: "week", topic: "", issuePage: 0, articlePage: 0, openIssues: new Set() };
+const $ = id => document.getElementById(id);
+$("from").value = state.from; $("to").value = state.to;
+$("from").min = $("to").min = minDate; $("from").max = $("to").max = maxDate;
+D.topics.slice().sort().forEach(t => $("topic").insertAdjacentHTML("beforeend", `<option>${esc(t)}</option>`));
+if (D.meta.sample) $("sampleBanner").hidden = false;
+$("updated").innerHTML = `데이터 기간 ${minDate} ~ ${maxDate}<br>갱신 ${esc((D.meta.generated || "").replace("T", " "))}`;
+
+// ---------- 집계 ----------
+function filtered(from, to) {
+  return A.filter(a => a.date >= from && a.date <= to && (!state.topic || a.topic === state.topic));
+}
+function summarize(list) {
+  const clusters = new Map();
+  const press = new Set();
+  let views = 0, withViews = 0;
+  for (const a of list) {
+    press.add(a.press);
+    if (a.views != null) { views += a.views; withViews++; }
+    let c = clusters.get(a.cluster);
+    if (!c) clusters.set(a.cluster, c = { id: a.cluster, items: [], press: new Set(), views: 0, hasViews: false, first: a.date, last: a.date, topics: {} });
+    c.items.push(a); c.press.add(a.press);
+    if (a.views != null) { c.views += a.views; c.hasViews = true; }
+    if (a.date < c.first) c.first = a.date;
+    if (a.date > c.last) c.last = a.date;
+    c.topics[a.topic] = (c.topics[a.topic] || 0) + 1;
+  }
+  const issues = [...clusters.values()];
+  issues.forEach(c => {
+    c.title = D.clusters[c.id] || c.items[0].title;
+    c.topic = Object.entries(c.topics).sort((x, y) => y[1] - x[1])[0][0];
+    c.grade = c.press.size >= 5 ? "l" : c.press.size >= 2 ? "m" : "s";
+  });
+  const days = new Set(list.map(a => a.date)).size;
+  return {
+    count: list.length, issues, issueCount: issues.length, pressCount: press.size,
+    views, withViews, coverage: list.length ? withViews / list.length : null,
+    spread: issues.length ? list.length / issues.length : null,
+    wide: issues.filter(c => c.grade === "l").length,
+    activeDays: days,
+  };
+}
+function buckets(list, from, to, g) {
+  const map = new Map();
+  for (let k = bucketKey(from, g), end = bucketKey(to, g); k <= end; k = nextBucket(k, g)) map.set(k, []);
+  for (const a of list) { const k = bucketKey(a.date, g); if (map.has(k)) map.get(k).push(a); }
+  return [...map.entries()];
+}
+
+// ---------- 차트 ----------
+Chart.defaults.font.family = '"Noto Sans KR", system-ui, sans-serif';
+Chart.defaults.font.size = 12;
+const charts = {};
+function baseOpts(horizontal = false, valueLabel = "건") {
+  const grid = css("--grid"), ink = css("--text-2"), muted = css("--muted");
+  const valueAxis = { beginAtZero: true, grid: { color: grid, drawTicks: false }, border: { display: false }, ticks: { color: muted, padding: 6, callback: v => fmt(v) } };
+  const catAxis = { grid: { display: false }, border: { color: grid }, ticks: { color: ink, autoSkip: true, maxRotation: 0 } };
+  return {
+    responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+    indexAxis: horizontal ? "y" : "x",
+    interaction: { mode: "index", intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: css("--surface"), titleColor: css("--text"), bodyColor: css("--text-2"),
+        borderColor: css("--border"), borderWidth: 1, padding: 10, displayColors: false,
+        callbacks: { label: c => `${c.dataset.label}: ${fmt(c.parsed[horizontal ? "x" : "y"])}${valueLabel}` },
+      },
+    },
+    scales: horizontal ? { x: valueAxis, y: { ...catAxis, ticks: { ...catAxis.ticks, autoSkip: false } } } : { x: catAxis, y: valueAxis },
+  };
+}
+function drawBar(id, labels, data, label, color, { horizontal = false, unit = "건", titles = null, extra = null } = {}) {
+  const opts = baseOpts(horizontal, unit);
+  if (titles) opts.plugins.tooltip.callbacks.title = items => titles[items[0].dataIndex];
+  if (extra) opts.plugins.tooltip.callbacks.afterLabel = c => extra(c.dataIndex);
+  const ds = { label, data, backgroundColor: color, hoverBackgroundColor: color, borderRadius: 4, borderSkipped: "start", maxBarThickness: horizontal ? 18 : 28, categoryPercentage: 0.8, barPercentage: 0.9 };
+  if (charts[id]) {
+    const ch = charts[id];
+    ch.data.labels = labels; ch.data.datasets = [ds]; ch.options = opts; ch.update();
+  } else {
+    charts[id] = new Chart($(id), { type: "bar", data: { labels, datasets: [ds] }, options: opts });
+  }
+}
+
+// ---------- 렌더 ----------
+function deltaHtml(cur, prev, label = "직전 동기간") {
+  if (prev == null || cur == null) return `<span>${label} 비교 불가</span>`;
+  if (prev === 0) return cur === 0 ? `<span>${label} 대비 변동 없음</span>` : `<span class="up">▲ 신규</span> ${label} 대비`;
+  const r = (cur - prev) / prev;
+  if (Math.abs(r) < 0.0005) return `<span>${label} 대비 변동 없음</span>`;
+  return `<span class="${r > 0 ? "up" : "down"}">${r > 0 ? "▲" : "▼"} ${Math.abs(r * 100).toFixed(1)}%</span> ${label} 대비`;
+}
+
+function render() {
+  const { from, to, grain } = state;
+  const list = filtered(from, to);
+  const S = summarize(list);
+  const len = daysBetween(from, to);
+  const pFrom = addDays(from, -len), pTo = addDays(from, -1);
+  const hasPrev = pTo >= minDate;
+  const P = hasPrev ? summarize(filtered(pFrom, pTo)) : null;
+
+  // KPI
+  const kpis = [
+    ["총 보도 건수", fmt(S.count), "건", deltaHtml(S.count, P?.count)],
+    ["통합 이슈", fmt(S.issueCount), "개", deltaHtml(S.issueCount, P?.issueCount)],
+    ["보도 매체", fmt(S.pressCount), "곳", deltaHtml(S.pressCount, P?.pressCount)],
+    ["확인 조회수", fmt(S.views), "회", `조회수 공개율 ${pct(S.coverage)}`],
+    ["이슈당 평균 보도", S.spread == null ? "–" : S.spread.toFixed(1), "건", deltaHtml(S.spread, P?.spread)],
+    ["대형 확산 이슈", fmt(S.wide), "개", "5개 매체 이상 보도"],
+  ];
+  $("kpis").innerHTML = kpis.map(([l, v, u, d]) => `<div class="kpi"><div class="label">${l}</div><div class="value">${v}<small>${u}</small></div><div class="delta">${d}</div></div>`).join("");
+
+  // 추이
+  const B = buckets(list, from, to, grain);
+  const labels = B.map(([k]) => bucketLabel(k, grain));
+  const titles = B.map(([k]) => bucketTitle(k, grain));
+  const gName = { day: "일별", week: "주별", month: "월별" }[grain];
+  $("trendSub").textContent = `${gName} 아산시 관련 기사 건수 · ${from} ~ ${to}`;
+  drawBar("trendChart", labels, B.map(([, v]) => v.length), "보도 건수", css("--s-articles"), {
+    titles, extra: i => { const s = summarize(B[i][1]); return `통합 이슈: ${fmt(s.issueCount)}개 · 매체: ${fmt(s.pressCount)}곳`; },
+  });
+  drawBar("viewsChart", labels, B.map(([, v]) => v.reduce((s, a) => s + (a.views || 0), 0)), "확인 조회수", css("--s-views"), {
+    unit: "회", titles, extra: i => `조회수 확보 기사: ${fmt(B[i][1].filter(a => a.views != null).length)}건`,
+  });
+
+  // 주제
+  const topicCnt = {};
+  list.forEach(a => topicCnt[a.topic] = (topicCnt[a.topic] || 0) + 1);
+  const topics = Object.entries(topicCnt).sort((a, b) => b[1] - a[1]);
+  drawBar("topicChart", topics.map(t => t[0]), topics.map(t => t[1]), "보도 건수", css("--s-articles"), {
+    horizontal: true, extra: i => `비중: ${pct(topics[i][1] / (S.count || 1))}`,
+  });
+
+  // 매체
+  const pressMap = new Map();
+  list.forEach(a => {
+    const p = pressMap.get(a.press) || { cnt: 0, views: 0, hasViews: false };
+    p.cnt++; if (a.views != null) { p.views += a.views; p.hasViews = true; }
+    pressMap.set(a.press, p);
+  });
+  const pressTop = [...pressMap.entries()].sort((a, b) => b[1].cnt - a[1].cnt).slice(0, 15);
+  drawBar("pressChart", pressTop.map(p => p[0]), pressTop.map(p => p[1].cnt), "보도 건수", css("--s-articles"), {
+    horizontal: true, extra: i => pressTop[i][1].hasViews ? `확인 조회수: ${fmt(pressTop[i][1].views)}회` : "조회수 비공개",
+  });
+  const pressViews = [...pressMap.entries()].filter(p => p[1].hasViews).sort((a, b) => b[1].views - a[1].views).slice(0, 15);
+  drawBar("pressViewsChart", pressViews.map(p => p[0]), pressViews.map(p => p[1].views), "확인 조회수", css("--s-views"), {
+    horizontal: true, unit: "회", extra: i => `기사 ${fmt(pressViews[i][1].cnt)}건 · 기사당 평균 ${fmt(pressViews[i][1].views / pressViews[i][1].cnt)}회`,
+  });
+
+  renderSummary(S, P, B, len);
+  renderPeriodTable(B);
+  state.issues = S.issues; state.list = list;
+  renderIssues(); renderArticles();
+}
+
+function renderSummary(S, P, B, len) {
+  const { from, to, grain } = state;
+  $("summarySub").textContent = `${from} ~ ${to} (${len}일)${state.topic ? " · 주제: " + state.topic : ""}${P ? " · 비교: 직전 " + len + "일" : ""}`;
+  const items = [];
+  if (!S.count) { $("summaryList").innerHTML = "<li>선택한 기간에 수집된 기사가 없습니다.</li>"; $("framework").innerHTML = ""; return; }
+  items.push(`기간 중 아산시 관련 기사 <b>${fmt(S.count)}건</b>이 <b>${fmt(S.pressCount)}개 매체</b>에 보도되었고, 유사 기사를 통합하면 <b>${fmt(S.issueCount)}개 이슈</b>입니다.` +
+    (P ? ` 직전 동기간(${fmt(P.count)}건) 대비 ${S.count >= P.count ? "증가" : "감소"}(${pct((S.count - P.count) / (P.count || 1))})했습니다.` : ""));
+  items.push(`하루 평균 <b>${(S.count / len).toFixed(1)}건</b>이 보도되었으며, 보도가 있었던 날은 ${len}일 중 <b>${S.activeDays}일</b>(${pct(S.activeDays / len)})입니다.`);
+  const peak = B.slice().sort((a, b) => b[1].length - a[1].length)[0];
+  if (peak && peak[1].length) {
+    const ps = summarize(peak[1]);
+    const top = ps.issues.sort((a, b) => b.items.length - a.items.length)[0];
+    items.push(`보도가 가장 많았던 ${{ day: "날은", week: "주는", month: "달은" }[grain]} <b>${bucketTitle(peak[0], grain)}</b>(${fmt(peak[1].length)}건)이며, 주요 이슈는 “${esc(top.title)}”입니다.`);
+  }
+  const top3 = S.issues.slice().sort((a, b) => b.items.length - a.items.length).slice(0, 3);
+  items.push(`가장 널리 보도된 이슈: ${top3.map(c => `“${esc(c.title)}”(${c.items.length}건·${c.press.size}개 매체)`).join(", ")}.`);
+  const tc = {}; S.issues.forEach(c => tc[c.topic] = (tc[c.topic] || 0) + c.items.length);
+  const tTop = Object.entries(tc).sort((a, b) => b[1] - a[1]).slice(0, 2);
+  if (!state.topic) items.push(`주제별로는 <b>${tTop.map(t => `${esc(t[0])}(${pct(t[1] / S.count)})`).join("</b>, <b>")}</b> 비중이 높습니다.`);
+  items.push(S.withViews
+    ? `조회수를 공개한 기사 ${fmt(S.withViews)}건(공개율 ${pct(S.coverage)})의 확인 조회수 합계는 <b>${fmt(S.views)}회</b>, 기사당 평균 <b>${fmt(S.views / S.withViews)}회</b>입니다.`
+    : `기간 내 조회수를 확보한 기사가 없습니다.`);
+  $("summaryList").innerHTML = items.map(t => `<li>${t}</li>`).join("");
+
+  const fw = [
+    ["노출 (Volume)", `${fmt(S.count)}건`, "기간 내 보도 건수"],
+    ["확산 (Spread)", `${S.spread.toFixed(1)}건/이슈`, `대형 확산 이슈 ${S.wide}개`],
+    ["도달 (Reach)", `${fmt(S.views)}회`, `조회수 공개율 ${pct(S.coverage)}`],
+    ["지속 (Continuity)", pct(S.activeDays / len), "보도가 있었던 날의 비율"],
+    ["매체 다양성", `${fmt(S.pressCount)}곳`, "보도한 매체 수"],
+    ["이슈 집중도", pct(top3.reduce((s, c) => s + c.items.length, 0) / S.count), "상위 3개 이슈의 보도 비중"],
+  ];
+  $("framework").innerHTML = fw.map(([k, v, d]) => `<div class="fw"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+}
+
+function renderPeriodTable(B) {
+  const g = state.grain;
+  $("periodTitle").textContent = { day: "일간", week: "주간", month: "월간" }[g] + " 성과표";
+  const rows = B.map(([k, v]) => ({ k, s: summarize(v) }));
+  let html = `<thead><tr><th>기간</th><th class="num">보도 건수</th><th class="num">증감</th><th class="num">통합 이슈</th><th class="num">매체 수</th><th class="num">이슈당 보도</th><th class="num">확인 조회수</th><th class="num">조회수 공개율</th><th>최다 보도 이슈</th></tr></thead><tbody>`;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const { k, s } = rows[i], prev = rows[i - 1]?.s;
+    const top = s.issues.sort((a, b) => b.items.length - a.items.length)[0];
+    const d = prev && prev.count ? (s.count - prev.count) / prev.count : null;
+    html += `<tr><td style="white-space:nowrap">${bucketTitle(k, g)}</td><td class="num">${fmt(s.count)}</td>
+      <td class="num">${d == null ? '<span class="na">–</span>' : `<span class="${d >= 0 ? "up" : "down"}" style="color:var(--${d >= 0 ? "up" : "down"})">${d >= 0 ? "▲" : "▼"} ${Math.abs(d * 100).toFixed(0)}%</span>`}</td>
+      <td class="num">${fmt(s.issueCount)}</td><td class="num">${fmt(s.pressCount)}</td>
+      <td class="num">${s.spread == null ? "–" : s.spread.toFixed(1)}</td><td class="num">${s.withViews ? fmt(s.views) : '<span class="na">–</span>'}</td>
+      <td class="num">${pct(s.coverage)}</td><td>${top ? esc(top.title) + ` <span class="na">(${top.items.length}건)</span>` : '<span class="na">보도 없음</span>'}</td></tr>`;
+  }
+  $("periodTable").innerHTML = html + "</tbody>";
+}
+
+const PAGE = 30;
+function sortedIssues() {
+  const q = $("issueSearch").value.trim();
+  let list = state.issues.filter(c => !q || c.title.includes(q) || c.items.some(a => a.title.includes(q)));
+  const key = $("issueSort").value;
+  const cmp = {
+    cnt: (a, b) => b.items.length - a.items.length || b.press.size - a.press.size,
+    press: (a, b) => b.press.size - a.press.size || b.items.length - a.items.length,
+    views: (a, b) => b.views - a.views,
+    date: (a, b) => b.last.localeCompare(a.last),
+  }[key];
+  return list.sort(cmp);
+}
+function renderIssues() {
+  const list = sortedIssues();
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  state.issuePage = Math.min(state.issuePage, pages - 1);
+  const slice = list.slice(state.issuePage * PAGE, (state.issuePage + 1) * PAGE);
+  const gradeName = { l: "대", m: "중", s: "소" };
+  let html = `<thead><tr><th class="num">#</th><th>통합 제목</th><th>주제</th><th class="num">기사 수</th><th class="num">매체 수</th><th>보도 기간</th><th class="num">확인 조회수</th><th>확산</th></tr></thead><tbody>`;
+  slice.forEach((c, i) => {
+    const open = state.openIssues.has(c.id);
+    html += `<tr class="issue" data-id="${c.id}"><td class="num">${state.issuePage * PAGE + i + 1}</td>
+      <td><span class="caret">${open ? "▾" : "▸"}</span>${esc(c.title)}</td><td><span class="topic-tag">${esc(c.topic)}</span></td>
+      <td class="num">${fmt(c.items.length)}</td><td class="num">${fmt(c.press.size)}</td>
+      <td style="white-space:nowrap">${c.first === c.last ? c.first : c.first + " ~ " + c.last.slice(5)}</td>
+      <td class="num">${c.hasViews ? fmt(c.views) : '<span class="na">–</span>'}</td>
+      <td><span class="badge ${c.grade}">${gradeName[c.grade]}</span></td></tr>`;
+    if (open) {
+      const items = c.items.slice().sort((a, b) => a.date.localeCompare(b.date));
+      html += `<tr class="detail"><td colspan="8"><ul>${items.map(a => `<li>${a.date} · <b>${esc(a.press)}</b> · ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a>` : esc(a.title)}${a.views != null ? ` · 조회 ${fmt(a.views)}` : ""}</li>`).join("")}</ul></td></tr>`;
+    }
+  });
+  if (!slice.length) html += `<tr><td colspan="8" class="empty">해당하는 이슈가 없습니다.</td></tr>`;
+  $("issueTable").innerHTML = html + "</tbody>";
+  $("issuePager").innerHTML = pager(state.issuePage, pages, list.length, "issue");
+}
+function pager(page, pages, total, kind) {
+  return `총 ${fmt(total)}건 · ${page + 1} / ${pages} 페이지
+    <button class="btn" data-pg="${kind}" data-to="${page - 1}" ${page <= 0 ? "disabled" : ""}>이전</button>
+    <button class="btn" data-pg="${kind}" data-to="${page + 1}" ${page >= pages - 1 ? "disabled" : ""}>다음</button>`;
+}
+function filteredArticles() {
+  const q = $("articleSearch").value.trim();
+  return state.list.filter(a => !q || a.title.includes(q) || a.press.includes(q)).sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+}
+function renderArticles() {
+  const list = filteredArticles();
+  const pages = Math.max(1, Math.ceil(list.length / PAGE));
+  state.articlePage = Math.min(state.articlePage, pages - 1);
+  const slice = list.slice(state.articlePage * PAGE, (state.articlePage + 1) * PAGE);
+  let html = `<thead><tr><th>보도일</th><th>매체</th><th>제목</th><th>주제</th><th>통합 이슈</th><th class="num">조회수</th></tr></thead><tbody>`;
+  slice.forEach(a => {
+    const cTitle = D.clusters[a.cluster] || a.title;
+    html += `<tr><td style="white-space:nowrap">${a.date}</td><td style="white-space:nowrap">${esc(a.press)}</td>
+      <td>${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a>` : esc(a.title)}</td>
+      <td><span class="topic-tag">${esc(a.topic)}</span></td><td class="na">${cTitle === a.title ? "–" : esc(cTitle)}</td>
+      <td class="num">${a.views != null ? fmt(a.views) : '<span class="na">–</span>'}</td></tr>`;
+  });
+  if (!slice.length) html += `<tr><td colspan="6" class="empty">해당하는 기사가 없습니다.</td></tr>`;
+  $("articleTable").innerHTML = html + "</tbody>";
+  $("articlePager").innerHTML = pager(state.articlePage, pages, list.length, "article");
+}
+
+function downloadCsv(name, header, rows) {
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const body = [header, ...rows].map(r => r.map(q).join(",")).join("\r\n");
+  const blob = new Blob(["﻿" + body], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ---------- 이벤트 ----------
+function setRange(from, to) {
+  state.from = from < minDate ? minDate : from; state.to = to > maxDate ? maxDate : to;
+  if (state.from > state.to) state.from = state.to;
+  $("from").value = state.from; $("to").value = state.to;
+  state.issuePage = state.articlePage = 0;
+  render();
+}
+$("presets").addEventListener("click", e => {
+  const p = e.target.dataset.p; if (!p) return;
+  [...$("presets").children].forEach(b => b.classList.toggle("on", b === e.target));
+  state.grain = { 7: "day", 30: "day", month: "day", quarter: "week", all: "week" }[p];
+  [...$("grain").children].forEach(b => b.classList.toggle("on", b.dataset.g === state.grain));
+  if (p === "all") setRange(minDate, maxDate);
+  else if (p === "month") setRange(maxDate.slice(0, 8) + "01", maxDate);
+  else if (p === "quarter") setRange(addDays(maxDate, -90), maxDate);
+  else setRange(addDays(maxDate, -(+p - 1)), maxDate);
+});
+["from", "to"].forEach(id => $(id).addEventListener("change", () => {
+  [...$("presets").children].forEach(b => b.classList.remove("on"));
+  setRange($("from").value || minDate, $("to").value || maxDate);
+}));
+function selectGrain(g) {
+  state.grain = g;
+  [...$("grain").children].forEach(b => b.classList.toggle("on", b.dataset.g === g));
+  render();
+}
+$("grain").addEventListener("click", e => { if (e.target.dataset.g) selectGrain(e.target.dataset.g); });
+$("topic").addEventListener("change", e => { state.topic = e.target.value; state.issuePage = state.articlePage = 0; render(); });
+$("issueSearch").addEventListener("input", () => { state.issuePage = 0; renderIssues(); });
+$("issueSort").addEventListener("change", () => { state.issuePage = 0; renderIssues(); });
+$("articleSearch").addEventListener("input", () => { state.articlePage = 0; renderArticles(); });
+$("issueTable").addEventListener("click", e => {
+  const tr = e.target.closest("tr.issue"); if (!tr || e.target.closest("a")) return;
+  const id = +tr.dataset.id;
+  state.openIssues.has(id) ? state.openIssues.delete(id) : state.openIssues.add(id);
+  renderIssues();
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-pg]"); if (!b || b.disabled) return;
+  if (b.dataset.pg === "issue") { state.issuePage = +b.dataset.to; renderIssues(); }
+  else { state.articlePage = +b.dataset.to; renderArticles(); }
+});
+$("issueCsv").addEventListener("click", () => downloadCsv(`아산시_주요이슈_${state.from}_${state.to}.csv`,
+  ["통합 제목", "주제", "기사 수", "매체 수", "첫 보도일", "마지막 보도일", "확인 조회수", "확산 등급"],
+  sortedIssues().map(c => [c.title, c.topic, c.items.length, c.press.size, c.first, c.last, c.hasViews ? c.views : "", { l: "대", m: "중", s: "소" }[c.grade]])));
+$("articleCsv").addEventListener("click", () => downloadCsv(`아산시_기사목록_${state.from}_${state.to}.csv`,
+  ["보도일", "매체", "제목", "URL", "주제", "통합 이슈", "조회수"],
+  filteredArticles().map(a => [a.date, a.press, a.title, a.url, a.topic, D.clusters[a.cluster] || a.title, a.views ?? ""])));
+
+// 테마
+try { const t = localStorage.getItem("asan-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$("themeBtn").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme
+    ? document.documentElement.dataset.theme === "dark"
+    : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("asan-theme", document.documentElement.dataset.theme); } catch (e) {}
+  render();
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+render();
+})();
+</script>
+</body>
+</html>

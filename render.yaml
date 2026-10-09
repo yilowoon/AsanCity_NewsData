@@ -1,0 +1,11 @@
+# Render Blueprint — 대시보드는 정적 사이트로 배포 (dashboard 폴더)
+services:
+  - type: web
+    runtime: static
+    name: asancity-newsdata
+    buildCommand: echo "static dashboard"
+    staticPublishPath: ./dashboard
+    headers:
+      - path: /data.js
+        name: Cache-Control
+        value: no-cache

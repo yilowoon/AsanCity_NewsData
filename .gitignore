@@ -1,0 +1,7 @@
+# 비밀키 — 절대 커밋하지 않음
+.env
+__pycache__/
+*.pyc
+data/sample.db
+data/*.log
+*.xlsx
