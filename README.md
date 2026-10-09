@@ -8,6 +8,7 @@
 |---|---|
 | `run.py` | 실행 진입점 |
 | `asan_pr/collect.py` | 네이버 API HUB 뉴스 검색 수집 |
+| `asan_pr/newstore.py` | 뉴스토어(빅카인즈) 뉴스검색 API 기간 수집 |
 | `asan_pr/bigkinds.py` | 빅카인즈 엑셀 가져오기 (과거분 보강) |
 | `asan_pr/cluster.py` | 유사 제목 통합 → 이슈 |
 | `asan_pr/views.py` | 원문 페이지의 공개 조회수 수집 |
@@ -18,18 +19,19 @@
 
 ## 사용법
 
-1. `.env` 에 NAVER API HUB 의 Client ID / Secret 입력
+1. `.env` 에 NAVER API HUB 의 Client ID / Secret, 뉴스토어 `NEWSTORE_API_KEY` 입력
 2. 실행
    ```
    python run.py daily                  # 수집 → 조회수 → 통합 → 대시보드
-   python run.py bigkinds 파일.xlsx     # 1월~현재 과거분 보강
+   python run.py newstore --from 2026-01-01   # 뉴스토어 API로 1월~현재 전체 수집
+   python run.py bigkinds 파일.xlsx     # (API 없이) 빅카인즈 엑셀로 보강
    python run.py sample                 # 샘플 데이터로 화면 미리보기
    ```
 3. 대시보드 보기: `python -m http.server 8765 --directory dashboard` 후 http://localhost:8765
    (또는 `dashboard/index.html` 을 브라우저로 직접 열기)
 4. 매일 자동 실행: GitHub Actions(`.github/workflows/daily.yml`)가 매일 07:00(KST)에 수집 후
    `data/asan_news.db`, `dashboard/data.js` 를 커밋 → Render 가 자동 재배포
-   - GitHub 저장소 Settings → Secrets and variables → Actions 에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 등록 필요
+   - GitHub 저장소 Settings → Secrets and variables → Actions 에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NEWSTORE_API_KEY` 등록 필요
    - 로컬 PC에서 돌리려면 Windows 작업 스케줄러에 `daily.bat` 등록
 
 ## Render 배포
