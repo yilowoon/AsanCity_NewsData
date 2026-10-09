@@ -78,6 +78,12 @@ header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 1
 .title-block p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .updated { color: var(--muted); font-size: 12px; text-align: right; }
+.refresh { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.refresh-msg { font-size: 11.5px; color: var(--muted); min-height: 1em; white-space: nowrap; }
+.refresh-msg.err { color: var(--down); }
+.btn:disabled { opacity: .6; cursor: default; }
+.btn.primary .spin { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .banner {
   background: var(--banner-bg); color: var(--banner-ink); font-weight: 500;
@@ -103,7 +109,7 @@ input[type=date], select, input[type=search] {
 }
 .btn {
   font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--surface);
-  color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer; white-space: nowrap;
 }
 .btn:hover { border-color: var(--brand); }
 .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
@@ -177,6 +183,11 @@ tr.detail li { margin: 3px 0; color: var(--text-2); }
 .notes li { margin: 4px 0; }
 .empty { color: var(--muted); padding: 30px; text-align: center; }
 
+@media (max-width: 960px) {
+  header.top .wrap { flex-wrap: wrap; }
+  .header-actions { margin-left: 0; width: 100%; justify-content: flex-start; }
+  .refresh { align-items: flex-start; }
+}
 @media (max-width: 600px) {
   .wrap { padding: 0 16px; }
   .title-block h1 { font-size: 18px; }
@@ -198,6 +209,10 @@ tr.detail li { margin: 3px 0; color: var(--text-2); }
     </div>
     <div class="header-actions">
       <div class="updated" id="updated"></div>
+      <div class="refresh" id="refreshBox" hidden>
+        <button class="btn primary" id="refreshBtn" title="네이버·뉴스토어에서 최신 기사를 다시 수집합니다">⟳ 최신 데이터로 갱신</button>
+        <div class="refresh-msg" id="refreshMsg" role="status" aria-live="polite"></div>
+      </div>
       <button class="btn" id="themeBtn" title="화면 테마 전환">◐ 테마</button>
       <button class="btn" onclick="window.print()">인쇄</button>
     </div>
@@ -692,6 +707,67 @@ $("issueCsv").addEventListener("click", () => downloadCsv(`아산시_주요이�
 $("articleCsv").addEventListener("click", () => downloadCsv(`아산시_기사목록_${state.from}_${state.to}.csv`,
   ["보도일", "매체", "제목", "URL", "주제", "통합 이슈", "조회수"],
   filteredArticles().map(a => [a.date, a.press, a.title, a.url, a.topic, D.clusters[a.cluster] || a.title, a.views ?? ""])));
+
+// ---------- 최신 데이터 갱신 (Render 서버 → GitHub Actions 수집 → 재배포) ----------
+const refresh = { timer: null, startedAt: 0, version: null, sawRun: false };
+function setRefresh(msg, { busy = false, err = false } = {}) {
+  $("refreshMsg").textContent = msg;
+  $("refreshMsg").classList.toggle("err", err);
+  $("refreshBtn").disabled = busy;
+  $("refreshBtn").innerHTML = busy ? '<span class="spin">⟳</span> 갱신 중…' : "⟳ 최신 데이터로 갱신";
+}
+async function refreshStatus() {
+  const r = await fetch("/api/refresh-status", { cache: "no-store" });
+  if (!r.headers.get("content-type")?.includes("json")) throw new Error("no api");
+  return { code: r.status, body: await r.json() };
+}
+function pollRefresh() {
+  clearTimeout(refresh.timer);
+  refresh.timer = setTimeout(async () => {
+    const mins = Math.max(1, Math.round((Date.now() - refresh.startedAt) / 60000));
+    if (Date.now() - refresh.startedAt > 40 * 60000) return setRefresh("시간이 오래 걸리고 있습니다. 잠시 후 새로고침해 주세요.", { err: true });
+    try {
+      const { body } = await refreshStatus();
+      if (refresh.version && body.dataVersion && body.dataVersion !== refresh.version) {
+        setRefresh("새 데이터가 배포되었습니다. 화면을 새로 고칩니다…", { busy: true });
+        return setTimeout(() => location.reload(), 1200);
+      }
+      const run = body.run;
+      if (run && run.status !== "completed") { refresh.sawRun = true; setRefresh(`기사 수집 중… (${mins}분 경과)`, { busy: true }); }
+      else if (run && refresh.sawRun && run.conclusion !== "success") return setRefresh("수집에 실패했습니다. 관리자에게 문의하세요.", { err: true });
+      else if (refresh.sawRun) setRefresh(`수집 완료, 사이트 배포 중… (${mins}분 경과)`, { busy: true });
+      else setRefresh(`수집 준비 중… (${mins}분 경과)`, { busy: true });
+    } catch (e) {
+      setRefresh(`사이트 재배포 중… (${mins}분 경과)`, { busy: true });   // 재배포 중에는 서버가 잠시 응답하지 않는다
+    }
+    pollRefresh();
+  }, 15000);
+}
+(async () => {
+  try {
+    const { body } = await refreshStatus();
+    $("refreshBox").hidden = false;
+    refresh.version = body.dataVersion;
+    if (!body.enabled) { $("refreshBtn").disabled = true; $("refreshBtn").title = body.message; return; }
+    if (body.run && body.run.status !== "completed") {   // 다른 사람이 이미 갱신을 시작한 경우
+      refresh.startedAt = Date.parse(body.run.createdAt) || Date.now(); refresh.sawRun = true;
+      setRefresh("기사 수집 중…", { busy: true }); pollRefresh();
+    }
+  } catch (e) { /* 정적 호스팅·로컬 파일: 갱신 API 없음 → 버튼 숨김 */ }
+})();
+$("refreshBtn").addEventListener("click", async () => {
+  if (!confirm("네이버·뉴스토어에서 최신 기사를 다시 수집합니다.\n수집과 재배포까지 약 5~10분 걸립니다. 진행할까요?")) return;
+  setRefresh("수집 요청 중…", { busy: true });
+  try {
+    const r = await fetch("/api/refresh", { method: "POST" });
+    const body = await r.json();
+    if (body.dataVersion) refresh.version = body.dataVersion;
+    if (r.status === 202 || (body.run && body.run.status !== "completed")) {
+      refresh.startedAt = Date.now(); refresh.sawRun = !body.started;
+      setRefresh(body.message, { busy: true }); pollRefresh();
+    } else setRefresh(body.message || "갱신 요청에 실패했습니다.", { err: true });
+  } catch (e) { setRefresh("서버에 연결할 수 없습니다.", { err: true }); }
+});
 
 // 테마
 try { const t = localStorage.getItem("asan-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
