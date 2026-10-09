@@ -5,3 +5,4 @@ __pycache__/
 data/sample.db
 data/*.log
 *.xlsx
+.claude/
