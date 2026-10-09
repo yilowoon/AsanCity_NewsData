@@ -116,7 +116,9 @@ section { margin-bottom: 20px; }
 }
 .card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
 .card .sub { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.grid-2 > *, .summary > * { min-width: 0; }
+.chart-box canvas { max-width: 100%; }
 @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
 
 /* KPI */
@@ -135,7 +137,7 @@ section { margin-bottom: 20px; }
 .chart-box.tall { height: 420px; }
 
 /* 요약 */
-.summary { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+.summary { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; }
 @media (max-width: 900px) { .summary { grid-template-columns: 1fr; } }
 .summary ul { margin: 0; padding-left: 18px; }
 .summary li { margin: 6px 0; color: var(--text-2); }
