@@ -29,7 +29,7 @@
    ```
 3. 대시보드 보기: `python -m http.server 8765 --directory dashboard` 후 http://localhost:8765
    (또는 `dashboard/index.html` 을 브라우저로 직접 열기)
-4. 매일 자동 실행: GitHub Actions(`.github/workflows/daily.yml`)가 매일 07:00(KST)에 수집 후
+4. 매일 자동 실행: GitHub Actions(`.github/workflows/daily.yml`)가 매일 08:00(KST)에 수집 후
    `data/asan_news.db`, `dashboard/data.js` 를 커밋 → Render 가 자동 재배포
    - GitHub 저장소 Settings → Secrets and variables → Actions 에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NEWSTORE_API_KEY` 등록 필요
    - 로컬 PC에서 돌리려면 Windows 작업 스케줄러에 `daily.bat` 등록

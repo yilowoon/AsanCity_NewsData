@@ -2,8 +2,12 @@
 //  - dashboard 폴더 정적 제공
 //  - POST /api/refresh        : GitHub Actions 수집 워크플로 실행 → 결과 커밋 시 Render 자동 재배포
 //  - GET  /api/refresh-status : 최근 수집 실행 상태 + 현재 배포된 데이터 생성 시각
-// 환경변수: GITHUB_TOKEN (해당 저장소 Actions 읽기/쓰기 권한), GITHUB_REPO, GITHUB_WORKFLOW
+//  - /admin                   : 관리자 페이지 (로그인 후 갱신 버튼 표시)
+//  - POST /api/admin/login · /api/admin/logout, GET /api/admin/me
+// 환경변수: GITHUB_TOKEN (해당 저장소 Actions 읽기/쓰기 권한), GITHUB_REPO, GITHUB_WORKFLOW,
+//          ADMIN_ID, ADMIN_PASSWORD (관리자 계정 — 공개 저장소에 올리지 말 것), SESSION_SECRET
 const http = require("http");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -14,6 +18,62 @@ const WORKFLOW = process.env.GITHUB_WORKFLOW || "daily.yml";
 const TOKEN = process.env.GITHUB_TOKEN || "";
 const COOLDOWN_MS = 10 * 60 * 1000;   // 버튼 남용 방지: 10분에 한 번
 let lastTrigger = 0;
+
+// ---------- 관리자 인증 ----------
+const ADMIN_ID = process.env.ADMIN_ID || "";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+const SESSION_HOURS = 8;
+const COOKIE = "asan_admin";
+const failures = new Map();   // ip → { count, until }  로그인 연속 실패 시 잠금
+
+const sha = v => crypto.createHash("sha256").update(String(v)).digest();
+const same = (a, b) => crypto.timingSafeEqual(sha(a), sha(b));
+const sign = v => crypto.createHmac("sha256", SESSION_SECRET).update(v).digest("base64url");
+
+function issueSession(res, req) {
+  const exp = String(Date.now() + SESSION_HOURS * 3600 * 1000);
+  const secure = (req.headers["x-forwarded-proto"] || "").includes("https") ? "; Secure" : "";
+  res.setHeader("Set-Cookie", `${COOKIE}=${exp}.${sign(exp)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_HOURS * 3600}${secure}`);
+}
+function isAdmin(req) {
+  const m = (req.headers.cookie || "").match(/(?:^|;\s*)asan_admin=(\d+)\.([\w-]+)/);
+  return !!m && Number(m[1]) > Date.now() && same(m[2], sign(m[1]));
+}
+function clientIp(req) {
+  return (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+}
+function readBody(req) {
+  return new Promise(resolve => {
+    let data = "";
+    req.on("data", c => { data += c; if (data.length > 10_000) req.destroy(); });
+    req.on("end", () => { try { resolve(JSON.parse(data || "{}")); } catch (e) { resolve({}); } });
+  });
+}
+
+async function adminApi(req, res, urlPath) {
+  if (urlPath === "/api/admin/me") return json(res, 200, { admin: isAdmin(req) });
+  if (urlPath === "/api/admin/logout" && req.method === "POST") {
+    res.setHeader("Set-Cookie", `${COOKIE}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
+    return json(res, 200, { ok: true });
+  }
+  if (urlPath === "/api/admin/login" && req.method === "POST") {
+    if (!ADMIN_ID || !ADMIN_PASSWORD) return json(res, 503, { message: "서버에 관리자 계정(ADMIN_ID, ADMIN_PASSWORD)이 설정되지 않았습니다." });
+    const ip = clientIp(req), f = failures.get(ip) || { count: 0, until: 0 };
+    if (f.until > Date.now()) return json(res, 429, { message: `로그인 시도가 많아 잠겼습니다. ${Math.ceil((f.until - Date.now()) / 60000)}분 후 다시 시도하세요.` });
+    const { id, password } = await readBody(req);
+    if (same(id || "", ADMIN_ID) && same(password || "", ADMIN_PASSWORD)) {
+      failures.delete(ip);
+      issueSession(res, req);
+      return json(res, 200, { ok: true });
+    }
+    f.count += 1;
+    if (f.count >= 5) { f.until = Date.now() + 15 * 60 * 1000; f.count = 0; }
+    failures.set(ip, f);
+    return json(res, 401, { message: "아이디 또는 비밀번호가 올바르지 않습니다." });
+  }
+  return json(res, 404, { message: "Not found" });
+}
 
 // 이 배포에 포함된 데이터의 생성 시각 (재배포되면 바뀐다)
 let dataVersion = "";
@@ -50,6 +110,8 @@ async function latestRun() {
 }
 
 async function api(req, res, urlPath) {
+  if (urlPath.startsWith("/api/admin/")) return adminApi(req, res, urlPath);
+  if (!isAdmin(req)) return json(res, 401, { message: "관리자 로그인이 필요합니다." });
   if (!TOKEN) return json(res, 503, { enabled: false, message: "서버에 GITHUB_TOKEN 이 설정되지 않았습니다." });
   try {
     if (urlPath === "/api/refresh-status" && req.method === "GET") {
@@ -74,7 +136,9 @@ async function api(req, res, urlPath) {
 http.createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split("?")[0]);
   if (urlPath.startsWith("/api/")) return api(req, res, urlPath);
-  const file = path.join(ROOT, urlPath === "/" ? "index.html" : urlPath);
+  if (urlPath === "/admin/") { res.writeHead(301, { Location: "/admin" }); return res.end(); }
+  const page = urlPath === "/" || urlPath === "/admin" ? "index.html" : urlPath;
+  const file = path.join(ROOT, page);
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); return res.end("Not found"); }

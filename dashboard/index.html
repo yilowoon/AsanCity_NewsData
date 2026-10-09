@@ -78,7 +78,20 @@ header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 1
 .title-block p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .updated { color: var(--muted); font-size: 12px; text-align: right; }
+.auto-note { margin-top: 2px; color: var(--brand-ink); font-weight: 500; }
 .refresh { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+[hidden] { display: none !important; }
+.admin-row { display: flex; gap: 6px; align-items: center; }
+.login-backdrop { position: fixed; inset: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 16px; }
+.login-backdrop[hidden] { display: none; }
+.login { width: min(360px, 100%); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.15); }
+.login .logo { align-self: center; }
+.login h2 { text-align: center; }
+.login .sub { text-align: center; margin: 0; }
+.login label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+.login input { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.login-msg { color: var(--down); font-size: 12.5px; min-height: 1em; }
+.login .back { text-align: center; font-size: 12.5px; }
 .refresh-msg { font-size: 11.5px; color: var(--muted); min-height: 1em; white-space: nowrap; }
 .refresh-msg.err { color: var(--down); }
 .btn:disabled { opacity: .6; cursor: default; }
@@ -208,9 +221,13 @@ tr.detail li { margin: 3px 0; color: var(--text-2); }
       <p>아산시 관련 온라인 뉴스 보도량 · 이슈 확산 · 페이지 조회수 모니터링</p>
     </div>
     <div class="header-actions">
-      <div class="updated" id="updated"></div>
+      <div class="updated"><span id="updated"></span><div class="auto-note">본 시스템은 매일 오전 8시(한국시간) 자동 갱신됩니다.</div></div>
       <div class="refresh" id="refreshBox" hidden>
-        <button class="btn primary" id="refreshBtn" title="네이버·뉴스토어에서 최신 기사를 다시 수집합니다">⟳ 최신 데이터로 갱신</button>
+        <div class="admin-row">
+          <span class="badge l">관리자 모드</span>
+          <button class="btn primary" id="refreshBtn" title="네이버·뉴스토어에서 최신 기사를 다시 수집합니다">⟳ 최신 데이터로 갱신</button>
+          <button class="btn" id="logoutBtn">로그아웃</button>
+        </div>
         <div class="refresh-msg" id="refreshMsg" role="status" aria-live="polite"></div>
       </div>
       <button class="btn" id="themeBtn" title="화면 테마 전환">◐ 테마</button>
@@ -218,6 +235,18 @@ tr.detail li { margin: 3px 0; color: var(--text-2); }
     </div>
   </div>
 </header>
+<div class="login-backdrop" id="loginBox" hidden>
+  <form class="login card" id="loginForm" autocomplete="off">
+    <img class="logo" src="assets/asan_logo.png" alt="">
+    <h2>관리자 로그인</h2>
+    <p class="sub">데이터 갱신 등 관리 기능을 사용하려면 로그인하세요.</p>
+    <label>아이디<input id="loginId" name="id" required></label>
+    <label>비밀번호<input id="loginPw" name="password" type="password" required></label>
+    <div class="login-msg" id="loginMsg" role="alert"></div>
+    <button class="btn primary" type="submit">로그인</button>
+    <a href="/" class="back">← 공개 페이지로</a>
+  </form>
+</div>
 <div class="banner" id="sampleBanner" hidden>
   <div class="wrap">⚠ 현재 화면은 <b>샘플 데이터</b>로 구성된 미리보기입니다. 매체명·기사·조회수는 실제 수집 자료가 아닙니다.</div>
 </div>
@@ -743,24 +772,54 @@ function pollRefresh() {
     pollRefresh();
   }, 15000);
 }
-(async () => {
+const IS_ADMIN_PAGE = location.pathname.replace(/\/+$/, "") === "/admin";
+async function enterAdmin() {
+  $("loginBox").hidden = true;
+  $("refreshBox").hidden = false;
   try {
-    const { body } = await refreshStatus();
-    $("refreshBox").hidden = false;
+    const { code, body } = await refreshStatus();
+    if (code === 401) return showLogin();
     refresh.version = body.dataVersion;
-    if (!body.enabled) { $("refreshBtn").disabled = true; $("refreshBtn").title = body.message; return; }
-    if (body.run && body.run.status !== "completed") {   // 다른 사람이 이미 갱신을 시작한 경우
+    if (!body.enabled) { setRefresh(body.message, { err: true }); $("refreshBtn").disabled = true; return; }
+    if (body.run && body.run.status !== "completed") {   // 다른 관리자가 이미 갱신을 시작한 경우
       refresh.startedAt = Date.parse(body.run.createdAt) || Date.now(); refresh.sawRun = true;
       setRefresh("기사 수집 중…", { busy: true }); pollRefresh();
     }
-  } catch (e) { /* 정적 호스팅·로컬 파일: 갱신 API 없음 → 버튼 숨김 */ }
-})();
+  } catch (e) { setRefresh("갱신 서버에 연결할 수 없습니다.", { err: true }); }
+}
+function showLogin(msg = "") {
+  $("refreshBox").hidden = true;
+  $("loginBox").hidden = false;
+  $("loginMsg").textContent = msg;
+  $("loginId").focus();
+}
+if (IS_ADMIN_PAGE) {
+  document.title = "관리자 · 아산시 홍보 성과 분석";
+  fetch("/api/admin/me", { cache: "no-store" }).then(r => r.json()).then(b => b.admin ? enterAdmin() : showLogin())
+    .catch(() => showLogin("관리자 기능을 지원하지 않는 서버입니다."));
+}
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  $("loginMsg").textContent = "";
+  try {
+    const r = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: $("loginId").value.trim(), password: $("loginPw").value }) });
+    const b = await r.json();
+    $("loginPw").value = "";
+    if (r.ok) enterAdmin(); else showLogin(b.message || "로그인에 실패했습니다.");
+  } catch (err) { showLogin("서버에 연결할 수 없습니다."); }
+});
+$("logoutBtn").addEventListener("click", async () => {
+  try { await fetch("/api/admin/logout", { method: "POST" }); } catch (e) {}
+  location.href = "/";
+});
 $("refreshBtn").addEventListener("click", async () => {
   if (!confirm("네이버·뉴스토어에서 최신 기사를 다시 수집합니다.\n수집과 재배포까지 약 5~10분 걸립니다. 진행할까요?")) return;
   setRefresh("수집 요청 중…", { busy: true });
   try {
     const r = await fetch("/api/refresh", { method: "POST" });
     const body = await r.json();
+    if (r.status === 401) return showLogin("로그인이 만료되었습니다. 다시 로그인하세요.");
     if (body.dataVersion) refresh.version = body.dataVersion;
     if (r.status === 202 || (body.run && body.run.status !== "completed")) {
       refresh.startedAt = Date.now(); refresh.sawRun = !body.started;
