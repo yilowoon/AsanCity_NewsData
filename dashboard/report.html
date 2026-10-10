@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>홍보 성과 분석 보고서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f6f9; --surface: #ffffff; --surface-2: #f8f9fb; --border: #e3e7ee;
+  --text: #121826; --text-2: #4a5263; --muted: #7a8396;
+  --brand: #1d4f9c; --brand-ink: #1d4f9c; --brand-soft: #e8eff9;
+  --s-1: #1d4f9c; --s-2: #e8891a; --s-3: #2f8a3b; --grid: #eceff4;
+  --up: #1f7a2e; --down: #c03b3b; --ai-bg: #f3f0ff; --ai-ink: #4a3aa7;
+  --div-neg: #c03b3b; --div-mid: #f0efec; --div-pos: #1d4f9c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1218; --surface: #171b23; --surface-2: #1d222c; --border: #2a303c;
+    --text: #f1f3f7; --text-2: #c2c8d4; --muted: #8f97a8;
+    --brand: #3d74c9; --brand-ink: #8fb4ec; --brand-soft: #1b2a42;
+    --s-1: #4a82d6; --s-2: #e8891a; --s-3: #3f9e4c; --grid: #252a35;
+    --up: #5cc46b; --down: #ef7b7b; --ai-bg: #221d3d; --ai-ink: #b9b0f5;
+    --div-neg: #e66767; --div-mid: #383835; --div-pos: #4a82d6;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1218; --surface: #171b23; --surface-2: #1d222c; --border: #2a303c;
+  --text: #f1f3f7; --text-2: #c2c8d4; --muted: #8f97a8;
+  --brand: #3d74c9; --brand-ink: #8fb4ec; --brand-soft: #1b2a42;
+  --s-1: #4a82d6; --s-2: #e8891a; --s-3: #3f9e4c; --grid: #252a35;
+  --up: #5cc46b; --down: #ef7b7b; --ai-bg: #221d3d; --ai-ink: #b9b0f5;
+  --div-neg: #e66767; --div-mid: #383835; --div-pos: #4a82d6;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: "Noto Sans KR", system-ui, "Malgun Gothic", sans-serif; font-size: 14px; line-height: 1.6; }
+a { color: var(--brand-ink); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+header.top { background: var(--surface); border-bottom: 1px solid var(--border); }
+header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 16px; padding-bottom: 16px; flex-wrap: wrap; }
+.logo { width: 52px; height: 52px; border-radius: 10px; background: #fff; padding: 4px; object-fit: contain; }
+h1 { margin: 0; font-size: 21px; letter-spacing: -0.02em; }
+.meta { color: var(--muted); font-size: 12.5px; }
+.actions { margin-left: auto; display: flex; gap: 8px; }
+.btn { font: inherit; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--brand); text-decoration: none; }
+main { padding: 20px 0 48px; }
+section.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin-bottom: 18px; }
+h2 { margin: 0 0 4px; font-size: 17px; }
+h2 .no { color: var(--brand-ink); margin-right: 6px; }
+.sub { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; }
+.ai { background: var(--ai-bg); border-radius: 10px; padding: 12px 14px; margin-top: 12px; color: var(--text); }
+.ai .tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--ai-ink); border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; margin-bottom: 4px; }
+.ai p { margin: 4px 0 0; }
+.headline { font-size: 17px; font-weight: 700; margin: 6px 0 10px; }
+ul.findings { margin: 0; padding-left: 18px; }
+ul.findings li { margin: 6px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.chip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: var(--text-2); }
+.chip b { color: var(--text); font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; background: var(--surface-2); white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td:first-child { white-space: nowrap; }
+.sig { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.sig.yes { background: var(--brand); color: #fff; }
+.sig.no { border: 1px solid var(--border); color: var(--muted); }
+.note { color: var(--muted); font-size: 12px; }
+.chart-box { position: relative; height: 300px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+.heat td { text-align: center; font-variant-numeric: tabular-nums; font-weight: 500; }
+.heat th:first-child, .heat td:first-child { text-align: left; }
+select { font: inherit; font-size: 13px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; }
+.methods { color: var(--muted); font-size: 12.5px; }
+.methods ul { margin: 6px 0 0; padding-left: 18px; }
+.empty { color: var(--muted); padding: 40px; text-align: center; }
+@media (max-width: 600px) { .wrap { padding: 0 16px; } h1 { font-size: 18px; } }
+@media print { .actions, select { display: none !important; } body { background: #fff; } section.card { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <img class="logo" src="assets/asan_logo.png" alt="아산시 심볼">
+    <div>
+      <h1>아산시 홍보사업 성과 통계 분석 보고서</h1>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="/">← 대시보드</a>
+      <button class="btn" onclick="window.print()">인쇄</button>
+    </div>
+  </div>
+</header>
+<main><div class="wrap" id="root"></div></main>
+
+<script src="data.js"></script>
+<script>
+try { const t = localStorage.getItem("asan-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+(() => {
+const R = window.ASAN_REPORT;
+const root = document.getElementById("root");
+if (!R || !R.ok) { root.innerHTML = `<div class="empty">${R ? R.reason : "분석 결과가 없습니다. python run.py report 를 실행하세요."}</div>`; return; }
+const AI = R.ai || null;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const num = (v, d = 2) => v == null ? "–" : Number(v).toLocaleString("ko-KR", { maximumFractionDigits: d, minimumFractionDigits: 0 });
+const pv = p => p == null ? "–" : p < 0.001 ? "<0.001" : p.toFixed(3);
+const sig = p => p == null ? '<span class="sig no">판단 불가</span>' : p < 0.05 ? `<span class="sig yes">유의${p < 0.001 ? " ***" : p < 0.01 ? " **" : " *"}</span>` : '<span class="sig no">유의하지 않음</span>';
+const aiBox = key => AI && AI.sections && AI.sections[key] ? `<div class="ai"><span class="tag">AI 해석</span><p>${esc(AI.sections[key])}</p></div>` : "";
+
+document.getElementById("meta").innerHTML =
+  `분석 기간 ${R.period.from} ~ ${R.period.until} (${R.period.days}일 · ${R.period.weeks}주) · 기사 ${num(R.n_articles, 0)}건 · 분석 ${esc((R.generated || "").replace("T", " "))}` +
+  (AI ? ` · 해석 ${esc(AI.model || "Gemini")}` : " · AI 해석 없음");
+
+let html = "";
+let n = 0;
+const sec = (title, sub, body) => { n++; html += `<section class="card"><h2><span class="no">${["Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ","Ⅵ","Ⅶ","Ⅷ","Ⅸ","Ⅹ"][n - 1]}.</span>${title}</h2>${sub ? `<p class="sub">${sub}</p>` : ""}${body}</section>`; };
+
+// Ⅰ. 요약
+sec("분석 요약", "통계 수치는 Python(scipy)으로 계산하고, 해석 문장은 Gemini가 그 수치만을 근거로 작성함",
+  AI ? `<div class="headline">${esc(AI.headline)}</div><ul class="findings">${(AI.key_findings || []).map(f => `<li>${esc(f)}</li>`).join("")}</ul>`
+     : `<p class="note">AI 해석이 아직 생성되지 않았습니다. 아래 통계표를 참고하세요.</p>`);
+
+// Ⅱ. 기술통계
+const D = R.descriptive;
+sec("기술통계", "보도 건수의 분포",
+  `<div class="table-wrap"><table><thead><tr><th>구분</th><th class="num">표본(n)</th><th class="num">평균</th><th class="num">표준편차</th><th class="num">중앙값</th><th class="num">최소</th><th class="num">최대</th><th class="num">변동계수</th></tr></thead><tbody>
+  ${[["주간 보도 건수", D.weekly_articles], ["일간 보도 건수", D.daily_articles]].map(([l, d]) =>
+    `<tr><td>${l}</td><td class="num">${d.n}</td><td class="num">${num(d.mean)}</td><td class="num">${num(d.sd)}</td><td class="num">${num(d.median, 1)}</td><td class="num">${d.min}</td><td class="num">${d.max}</td><td class="num">${num(d.cv, 3)}</td></tr>`).join("")}
+  </tbody></table></div><p class="note">변동계수(표준편차÷평균)가 1에 가까울수록 주별 보도량의 기복이 큼</p>`);
+
+// Ⅲ. 추세
+const T = R.trend;
+sec("추세 분석", "주차(시간)와 주간 보도 건수의 선형회귀 및 순위상관",
+  `<div class="chips"><span class="chip">기울기 <b>${T.slope_per_week > 0 ? "+" : ""}${num(T.slope_per_week)}건/주</b></span>
+   <span class="chip">결정계수 R² <b>${num(T.r2, 3)}</b></span><span class="chip">p <b>${pv(T.p)}</b></span>
+   <span class="chip">Spearman ρ <b>${num(T.spearman_rho, 3)}</b> (p ${pv(T.spearman_p)})</span><span class="chip">${sig(T.p)}</span></div>
+   <div class="chart-box"><canvas id="trendChart" aria-label="주간 보도 건수와 추세선"></canvas></div>${aiBox("trend")}`);
+
+// Ⅳ. 상관분석
+const C = R.correlation;
+sec("상관분석", `주간 지표와 주간 보도 건수의 상관 (n=${R.period.weeks}주) · 다중비교는 Holm 방법으로 보정`,
+  `<div class="table-wrap"><table><thead><tr><th>변수</th><th>분석 질문</th><th class="num">n</th><th class="num">Pearson r</th><th class="num">95% 신뢰구간</th><th class="num">p</th><th class="num">보정 p(Holm)</th><th class="num">Spearman ρ</th><th>강도</th><th>유의성</th></tr></thead><tbody>
+  ${C.map(c => `<tr><td><b>${esc(c.label)}</b>${c.note ? `<div class="note">※ 구조적 상관 포함</div>` : ""}${c.small_sample ? `<div class="note">※ 표본 적음</div>` : ""}</td><td>${esc(c.question)}</td>
+    <td class="num">${c.n}</td><td class="num">${num(c.pearson_r, 3)}</td><td class="num">[${num(c.ci95[0], 3)}, ${num(c.ci95[1], 3)}]</td>
+    <td class="num">${pv(c.pearson_p)}</td><td class="num">${pv(c.p_holm)}</td><td class="num">${num(c.spearman_rho, 3)}</td><td style="white-space:nowrap">${esc(c.strength)}</td><td>${sig(c.p_holm)}</td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="grid-2" style="margin-top:16px">
+    <div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:13.5px">산점도</b>
+      <select id="scatterSel" aria-label="산점도 변수 선택">${C.map((c, i) => `<option value="${i}">${esc(c.label)} ↔ 보도 건수</option>`).join("")}</select></div>
+      <div class="chart-box"><canvas id="scatterChart" aria-label="상관 산점도"></canvas></div></div>
+    <div><b style="font-size:13.5px">상관행렬 (Pearson r, 주간 지표)</b><div class="table-wrap" style="margin-top:8px"><table class="heat" id="heat"></table></div>
+      <p class="note">색이 진할수록 상관이 강함 (파랑 +, 빨강 −)</p></div>
+  </div>${aiBox("correlation")}`);
+
+// Ⅴ. 요일 효과
+const Wd = R.weekday;
+sec("요일 효과", "평일과 주말의 일간 보도 건수 차이 (Mann-Whitney U 검정), 요일 간 차이 (Kruskal-Wallis 검정)",
+  `<div class="chips"><span class="chip">평일 평균 <b>${num(Wd.weekday_mean)}건</b></span><span class="chip">주말 평균 <b>${num(Wd.weekend_mean)}건</b></span>
+   <span class="chip">배율 <b>${num(Wd.ratio)}배</b></span><span class="chip">U <b>${num(Wd.mannwhitney_u, 1)}</b>, p <b>${pv(Wd.p)}</b></span>
+   <span class="chip">효과크기 r <b>${num(Wd.effect_r, 3)}</b></span><span class="chip">Kruskal H <b>${num(Wd.kruskal_h)}</b> (p ${pv(Wd.kruskal_p)})</span><span class="chip">${sig(Wd.p)}</span></div>
+   <div class="chart-box" style="height:240px"><canvas id="wdChart" aria-label="요일별 평균 보도 건수"></canvas></div>${aiBox("weekday")}`);
+
+// Ⅵ. 주제별 확산력
+const TS = R.topic_spread;
+if (TS) sec("주제별 확산력 차이", "이슈(유사 기사 묶음)당 보도 매체 수를 주제 분야별로 비교 (Kruskal-Wallis 검정, 이슈 20개 이상 분야)",
+  `<div class="chips"><span class="chip">H <b>${num(TS.kruskal_h)}</b></span><span class="chip">p <b>${pv(TS.p)}</b></span><span class="chip">효과크기 ε² <b>${num(TS.epsilon2, 3)}</b></span><span class="chip">${sig(TS.p)}</span></div>
+   <div class="table-wrap"><table><thead><tr><th>주제</th><th class="num">이슈 수</th><th class="num">이슈당 평균 매체 수</th><th class="num">중앙값</th><th class="num">대형 확산 비율(5개 매체↑)</th></tr></thead><tbody>
+   ${TS.groups.map(g => `<tr><td>${esc(g.topic)}</td><td class="num">${num(g.issues, 0)}</td><td class="num">${num(g.mean_press)}</td><td class="num">${num(g.median_press, 1)}</td><td class="num">${num(g.wide_share * 100, 1)}%</td></tr>`).join("")}
+   </tbody></table></div>${aiBox("topic_spread")}`);
+
+// Ⅶ. 주제 구성 변화
+const TM = R.topic_month;
+sec("주제 구성 변화", "월별 주제 분야 구성이 시기에 따라 달라지는지 검정 (카이제곱 독립성 검정)",
+  `<div class="chips"><span class="chip">χ² <b>${num(TM.chi2)}</b> (자유도 ${TM.dof})</span><span class="chip">p <b>${pv(TM.p)}</b></span><span class="chip">Cramér's V <b>${num(TM.cramers_v, 3)}</b></span><span class="chip">${sig(TM.p)}</span></div>
+   <div class="table-wrap"><table class="heat" id="tmTable"></table></div><p class="note">월별 기사 중 주제 분야 비중(%) · 색이 진할수록 비중이 큼</p>${aiBox("topic_month")}`);
+
+// Ⅷ. 홍보비 연계
+const B = R.budget;
+sec("홍보비 연계 분석", "월별 홍보비 집행액과 보도 건수의 상관",
+  B.available === false ? `<p class="note">${esc(B.note)}</p>${aiBox("budget")}`
+  : `<div class="chips"><span class="chip">n <b>${B.n}개월</b></span><span class="chip">Pearson r <b>${num(B.pearson_r, 3)}</b> (p ${pv(B.pearson_p)})</span><span class="chip">Spearman ρ <b>${num(B.spearman_rho, 3)}</b></span><span class="chip">보도 1건당 홍보비 <b>${num(B.cost_per_article, 0)}원</b></span><span class="chip">${sig(B.pearson_p)}</span></div>${aiBox("budget")}`);
+
+// Ⅸ. 제언 및 유의사항
+sec("제언 및 유의사항", "",
+  `${AI && AI.recommendations ? `<div class="ai"><span class="tag">AI 제언</span><ul class="findings">${AI.recommendations.map(r => `<li>${esc(r)}</li>`).join("")}</ul></div>` : ""}
+   <h3 style="font-size:14px;margin:16px 0 4px">데이터 한계</h3><ul class="findings">${R.limitations.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+   <div class="methods" style="margin-top:14px"><b>분석 방법</b><ul>
+     <li>상관: Pearson 적률상관(95% 신뢰구간: Fisher z 변환), Spearman 순위상관 병기, 다중비교 Holm 보정</li>
+     <li>집단 비교: Mann-Whitney U(효과크기 r=Z/√N), Kruskal-Wallis H(효과크기 ε²), 카이제곱 독립성 검정(Cramér's V)</li>
+     <li>유의수준 α=0.05 · * p<0.05, ** p<0.01, *** p<0.001 · 진행 중인 마지막 주는 주간 분석에서 제외</li>
+     <li>해석 문장은 생성형 AI(Gemini)가 계산된 수치만을 근거로 작성하였으며, 최종 판단은 담당자 검토를 거쳐야 함</li></ul></div>`);
+
+root.innerHTML = html;
+
+// ── 차트 ──
+Chart.defaults.font.family = '"Noto Sans KR", system-ui, sans-serif';
+Chart.defaults.font.size = 12;
+const grid = css("--grid"), muted = css("--muted"), ink = css("--text-2");
+const tooltip = { backgroundColor: css("--surface"), titleColor: css("--text"), bodyColor: ink, borderColor: css("--border"), borderWidth: 1, padding: 10 };
+const axes = (xTitle, yTitle) => ({
+  x: { grid: { display: false }, border: { color: grid }, ticks: { color: ink, maxRotation: 0, autoSkip: true }, title: xTitle ? { display: true, text: xTitle, color: muted } : undefined },
+  y: { min: 0, grid: { color: grid }, border: { display: false }, ticks: { color: muted }, title: yTitle ? { display: true, text: yTitle, color: muted } : undefined },
+});
+
+// 추세: 막대 + 회귀선
+const labels = T.series.map(s => `${+s.week.slice(5, 7)}/${+s.week.slice(8)}`);
+new Chart(document.getElementById("trendChart"), {
+  data: { labels, datasets: [
+    { type: "bar", label: "주간 보도 건수", data: T.series.map(s => s.articles), backgroundColor: css("--s-1"), borderRadius: 4, maxBarThickness: 22, order: 2 },
+    { type: "line", label: "추세선(선형회귀)", data: T.series.map((_, i) => T.intercept + T.slope_per_week * i), borderColor: css("--s-2"), borderWidth: 2, pointRadius: 0, order: 1 },
+  ] },
+  options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+    plugins: { legend: { labels: { color: ink, boxWidth: 12 } }, tooltip: { ...tooltip, callbacks: { label: c => `${c.dataset.label}: ${num(c.parsed.y, 1)}건` } } },
+    scales: axes("주 시작일", "건") },
+});
+
+// 산점도 + 회귀선
+let scatter;
+function drawScatter(i) {
+  const c = C[i];
+  const pts = c.points.map(([x, y]) => ({ x, y }));
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const sxy = xs.reduce((s, x, k) => s + (x - mx) * (ys[k] - my), 0), sxx = xs.reduce((s, x) => s + (x - mx) ** 2, 0);
+  const b = sxx ? sxy / sxx : 0, a = my - b * mx;
+  const lo = Math.min(...xs), hi = Math.max(...xs);
+  const data = { datasets: [
+    { type: "scatter", label: "주", data: pts, backgroundColor: css("--s-1"), pointRadius: 4, pointHoverRadius: 6 },
+    { type: "line", label: `회귀선 (r=${num(c.pearson_r, 3)})`, data: [{ x: lo, y: a + b * lo }, { x: hi, y: a + b * hi }], borderColor: css("--s-2"), borderWidth: 2, pointRadius: 0 },
+  ] };
+  const options = { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: ink, boxWidth: 12 } }, tooltip: { ...tooltip, callbacks: { label: k => `${c.label} ${num(k.parsed.x, 2)} · 보도 ${num(k.parsed.y, 0)}건` } } },
+    scales: { x: { type: "linear", grid: { color: grid }, ticks: { color: muted }, title: { display: true, text: c.label, color: muted } },
+              y: { min: 0, grid: { color: grid }, ticks: { color: muted }, title: { display: true, text: "주간 보도 건수", color: muted } } } };
+  if (scatter) { scatter.data = data; scatter.options = options; scatter.update(); }
+  else scatter = new Chart(document.getElementById("scatterChart"), { data, options });
+}
+drawScatter(0);
+document.getElementById("scatterSel").addEventListener("change", e => drawScatter(+e.target.value));
+
+// 상관행렬 히트맵 (발산형: 빨강 − / 회색 0 / 파랑 +)
+function mix(a, b, t) {
+  const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const [x, y] = [p(a), p(b)];
+  return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(",")})`;
+}
+const M = R.corr_matrix;
+document.getElementById("heat").innerHTML = `<thead><tr><th></th>${M.labels.map(l => `<th>${esc(l)}</th>`).join("")}</tr></thead><tbody>` +
+  M.r.map((row, i) => `<tr><td>${esc(M.labels[i])}</td>${row.map(v => {
+    const bg = v >= 0 ? mix(css("--div-mid"), css("--div-pos"), v) : mix(css("--div-mid"), css("--div-neg"), -v);
+    return `<td style="background:${bg};color:${Math.abs(v) > 0.55 ? "#fff" : "inherit"}">${num(v, 2)}</td>`;
+  }).join("")}</tr>`).join("") + "</tbody>";
+
+// 요일
+new Chart(document.getElementById("wdChart"), {
+  type: "bar",
+  data: { labels: Wd.means.map(m => m.day), datasets: [{ label: "평균 보도 건수", data: Wd.means.map(m => m.mean),
+    backgroundColor: Wd.means.map((m, i) => i >= 5 ? css("--s-2") : css("--s-1")), borderRadius: 4, maxBarThickness: 36 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: { label: c => `평균 ${num(c.parsed.y)}건 (n=${Wd.means[c.dataIndex].n}일)` } } },
+    scales: axes("", "건/일") },
+});
+
+// 주제 × 월 비중 표
+const months = TM.months, topics = Object.keys(TM.share);
+document.getElementById("tmTable").innerHTML = `<thead><tr><th>주제</th>${months.map(m => `<th>${+m.slice(5)}월</th>`).join("")}</tr></thead><tbody>` +
+  topics.map(tp => `<tr><td>${esc(tp)}</td>${TM.share[tp].map(v => {
+    const t = Math.min(1, (v || 0) / 0.4);
+    return `<td style="background:${mix(css("--div-mid"), css("--div-pos"), t)};color:${t > 0.6 ? "#fff" : "inherit"}">${num((v || 0) * 100, 0)}</td>`;
+  }).join("")}</tr>`).join("") + "</tbody>";
+})();
+</script>
+</body>
+</html>

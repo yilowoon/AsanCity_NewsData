@@ -12,9 +12,12 @@
 | `asan_pr/bigkinds.py` | 빅카인즈 엑셀 가져오기 (과거분 보강) |
 | `asan_pr/cluster.py` | 유사 제목 통합 → 이슈 |
 | `asan_pr/views.py` | 원문 페이지의 공개 조회수 수집 |
+| `asan_pr/stats.py` | 통계 분석 (추세·상관·유의성 검정) |
+| `asan_pr/llm.py` | Gemini 로 통계 결과 해석 (수치는 만들지 않음) |
 | `asan_pr/export.py` | 대시보드 데이터(`dashboard/data.js`) 생성 |
 | `asan_pr/config.py` | 검색어·주제 분류·통합 기준 설정 |
 | `dashboard/index.html` | 대시보드 |
+| `dashboard/report.html` | 성과 통계 분석 보고서 |
 | `data/asan_news.db` | 수집 DB (SQLite) |
 
 ## 사용법
@@ -31,7 +34,7 @@
    (또는 `dashboard/index.html` 을 브라우저로 직접 열기)
 4. 매일 자동 실행: GitHub Actions(`.github/workflows/daily.yml`)가 매일 08:00(KST)에 수집 후
    `data/asan_news.db`, `dashboard/data.js` 를 커밋 → Render 가 자동 재배포
-   - GitHub 저장소 Settings → Secrets and variables → Actions 에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NEWSTORE_API_KEY` 등록 필요
+   - GitHub 저장소 Settings → Secrets and variables → Actions 에 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET`, `NEWSTORE_API_KEY`, `GEMINI_API_KEY` 등록 필요
    - 로컬 PC에서 돌리려면 Windows 작업 스케줄러에 `daily.bat` 등록
 
 ## Render 배포

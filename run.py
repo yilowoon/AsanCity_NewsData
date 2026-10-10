@@ -7,7 +7,8 @@
   python run.py bigkinds 파일.xlsx    # 빅카인즈 엑셀 가져오기 (과거분 보강)
   python run.py cluster               # 유사 제목 통합
   python run.py views [--limit N]     # 원문 페이지 조회수 확인
-  python run.py build                 # 대시보드 데이터 생성
+  python run.py build                 # 대시보드 데이터 생성 (통계는 재계산, AI 해석은 직전 것 재사용)
+  python run.py report                # 통계 분석 + Gemini 해석 새로 생성
   python run.py sample                # 샘플 데이터로 대시보드 미리보기
 """
 import argparse
@@ -24,7 +25,7 @@ DATA_JS = config.DASHBOARD_DIR / "data.js"
 
 def main() -> None:
     p = argparse.ArgumentParser(description="아산시 홍보 성과 분석")
-    p.add_argument("command", choices=["daily", "collect", "newstore", "bigkinds", "cluster", "views", "build", "sample"])
+    p.add_argument("command", choices=["daily", "collect", "newstore", "bigkinds", "cluster", "views", "build", "report", "sample"])
     p.add_argument("file", nargs="?", help="빅카인즈 엑셀 경로")
     p.add_argument("--limit", type=int, help="조회수 확인 최대 건수")
     p.add_argument("--from", dest="date_from", type=date.fromisoformat, help="뉴스토어 수집 시작일")
@@ -63,8 +64,11 @@ def main() -> None:
         print("조회수:", views.update_views(conn, args.limit))
     if args.command in ("cluster", "daily", "bigkinds", "collect", "newstore", "views"):
         print("통합:", cluster.build_clusters(conn))
-    if args.command in ("build", "daily", "cluster", "bigkinds", "collect", "newstore", "views"):
-        print("내보내기:", export.export(conn, DATA_JS))
+    if args.command in ("build", "report", "daily", "cluster", "bigkinds", "collect", "newstore", "views"):
+        from asan_pr import report
+        rep = report.build(conn, use_llm=args.command in ("daily", "report"))
+        print("통계 보고서:", "AI 해석 포함" if rep.get("ai") else "통계만")
+        print("내보내기:", export.export(conn, DATA_JS, report=rep))
 
 
 if __name__ == "__main__":

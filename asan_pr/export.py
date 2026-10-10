@@ -6,7 +6,7 @@ from pathlib import Path
 from . import config
 
 
-def export(conn, out: Path, sample: bool = False) -> dict:
+def export(conn, out: Path, sample: bool = False, report: dict | None = None) -> dict:
     rows = conn.execute(
         """SELECT id, pub_date, cluster_id, press, title, url, views, topic, source
            FROM articles ORDER BY pub_date, id"""
@@ -50,6 +50,8 @@ def export(conn, out: Path, sample: bool = False) -> dict:
         "articles": articles,
     }
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("window.ASAN_DATA = " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n",
-                   encoding="utf-8")
+    js = "window.ASAN_DATA = " + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n"
+    if report:
+        js += "window.ASAN_REPORT = " + json.dumps(report, ensure_ascii=False, separators=(",", ":")) + ";\n"
+    out.write_text(js, encoding="utf-8")
     return {"articles": len(articles), "clusters": len(clusters), "file": str(out)}

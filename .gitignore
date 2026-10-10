@@ -6,3 +6,4 @@ data/sample.db
 data/*.log
 *.xlsx
 .claude/
+data/report.json

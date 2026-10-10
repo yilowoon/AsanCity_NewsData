@@ -190,6 +190,22 @@ tr.detail li { margin: 3px 0; color: var(--text-2); }
 .toolbar .grow { flex: 1; }
 .pager { display: flex; gap: 6px; align-items: center; justify-content: flex-end; margin-top: 10px; color: var(--muted); font-size: 12.5px; }
 
+.stat-summary { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
+.stat-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.stat-head h3 { margin: 0; font-size: 14.5px; }
+.ai-tag { font-size: 11px; font-weight: 700; color: #4a3aa7; border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; }
+:root[data-theme="dark"] .ai-tag { color: #b9b0f5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ai-tag { color: #b9b0f5; } }
+.stat-headline { font-weight: 700; margin: 0 0 6px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+@media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat-cell { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.stat-cell .k { font-size: 12px; color: var(--muted); }
+.stat-cell .v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat-cell .d { font-size: 11.5px; color: var(--muted); }
+.stat-summary ul { margin: 0; padding-left: 18px; color: var(--text-2); }
+.stat-summary li { margin: 4px 0; }
+.stat-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .notes { color: var(--muted); font-size: 12.5px; }
 .notes h3 { color: var(--text-2); font-size: 13px; margin: 0 0 6px; }
 .notes ul { margin: 0; padding-left: 18px; }
@@ -303,6 +319,7 @@ tr.detail li { margin: 3px 0; color: var(--text-2); }
       <ul id="summaryList"></ul>
       <div class="framework" id="framework"></div>
     </div>
+    <div class="stat-summary" id="statSummary" hidden></div>
   </section>
 
   <section class="card">
@@ -736,6 +753,31 @@ $("issueCsv").addEventListener("click", () => downloadCsv(`아산시_주요이�
 $("articleCsv").addEventListener("click", () => downloadCsv(`아산시_기사목록_${state.from}_${state.to}.csv`,
   ["보도일", "매체", "제목", "URL", "주제", "통합 이슈", "조회수"],
   filteredArticles().map(a => [a.date, a.press, a.title, a.url, a.topic, D.clusters[a.cluster] || a.title, a.views ?? ""])));
+
+// ---------- 통계 분석 요약 (전체 기간, Python 통계 + Gemini 해석) ----------
+(function renderStatSummary() {
+  const R = window.ASAN_REPORT;
+  if (!R || !R.ok) return;
+  const pv = p => p == null ? "–" : p < 0.001 ? "<0.001" : p.toFixed(3);
+  const c = k => (R.correlation || []).find(x => x.var === k);
+  const iss = c("issues"), spr = c("spread"), T = R.trend, Wd = R.weekday;
+  const cells = [
+    iss && ["이슈 수 ↔ 보도량", `r = ${iss.pearson_r.toFixed(3)}`, `보정 p ${pv(iss.p_holm)} · ${iss.significance.replace(/\s*\(.*\)$/, "")}`],
+    spr && ["이슈 확산도 ↔ 보도량", `r = ${spr.pearson_r.toFixed(3)}`, `보정 p ${pv(spr.p_holm)} · ${spr.significance.replace(/\s*\(.*\)$/, "")}`],
+    T && ["주간 보도 추세", `${T.slope_per_week > 0 ? "+" : ""}${T.slope_per_week}건/주`, `R² ${T.r2} · p ${pv(T.p)}`],
+    Wd && ["평일/주말 차이", `${Wd.ratio}배`, `Mann-Whitney p ${pv(Wd.p)}`],
+  ].filter(Boolean);
+  const AI = R.ai;
+  $("statSummary").innerHTML = `
+    <div class="stat-head"><h3>통계 분석 요약</h3>${AI ? `<span class="ai-tag">AI 해석 · ${esc(AI.model || "Gemini")}</span>` : ""}
+      <span class="na" style="font-size:12px">전체 기간 ${R.period.from} ~ ${R.period.until} 기준</span></div>
+    ${AI ? `<p class="stat-headline">${esc(AI.headline)}</p>` : ""}
+    <div class="stat-grid">${cells.map(([k, v, d]) => `<div class="stat-cell"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${esc(d)}</div></div>`).join("")}</div>
+    ${AI ? `<ul>${(AI.key_findings || []).slice(0, 3).map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
+    <div class="stat-foot"><span class="na" style="font-size:12px">상관·유의성은 Python(scipy)으로 계산, 해석 문장은 Gemini 작성 · 상관은 인과를 의미하지 않음</span>
+      <a class="btn primary" href="report.html">성과 보고내용 보기 →</a></div>`;
+  $("statSummary").hidden = false;
+})();
 
 // ---------- 최신 데이터 갱신 (Render 서버 → GitHub Actions 수집 → 재배포) ----------
 const refresh = { timer: null, startedAt: 0, version: null, sawRun: false };
