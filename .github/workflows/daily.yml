@@ -27,6 +27,8 @@ jobs:
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
           NEWSTORE_API_KEY: ${{ secrets.NEWSTORE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_TEXT_MODEL: gemini-3.1-flash-lite
           TZ: Asia/Seoul
         run: python run.py daily
       - name: 결과 커밋 (Render 자동 재배포)
