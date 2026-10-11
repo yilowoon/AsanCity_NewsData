@@ -1,9 +1,14 @@
 name: daily-collect
 
+# GitHub 예약 실행은 정시(:00)에 몰려 지연·누락이 잦으므로
+# 정시를 피해 07:07 / 07:37 / 08:07 (KST) 세 번 예약하고,
+# 그날 07시 이후 이미 갱신됐으면 나머지 예약 실행은 건너뛴다.
 on:
   schedule:
-    - cron: "0 23 * * *"   # 매일 08:00 (KST)
-  workflow_dispatch:        # Actions 탭에서 수동 실행
+    - cron: "7 22 * * *"    # 07:07 KST
+    - cron: "37 22 * * *"   # 07:37 KST (지연·누락 대비)
+    - cron: "7 23 * * *"    # 08:07 KST (지연·누락 대비)
+  workflow_dispatch:        # Actions 탭·관리자 페이지에서 수동 실행
 
 permissions:
   contents: write
@@ -18,11 +23,25 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+      - name: 오늘 이미 갱신됐는지 확인 (예약 실행만)
+        id: guard
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            since=$(TZ=Asia/Seoul date -d "$(TZ=Asia/Seoul date +%F) 07:00" +%s)
+            last=$(git log -1 --format=%ct --author="github-actions")
+            if [ -n "$last" ] && [ "$last" -ge "$since" ]; then
+              echo "오늘 07시 이후 이미 갱신됨 — 건너뜀"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
       - uses: actions/setup-python@v5
+        if: steps.guard.outputs.skip != 'true'
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
+        if: steps.guard.outputs.skip != 'true'
       - name: 수집 → 조회수 → 통합 → 대시보드
+        if: steps.guard.outputs.skip != 'true'
         env:
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
@@ -32,9 +51,10 @@ jobs:
           TZ: Asia/Seoul
         run: python run.py daily
       - name: 결과 커밋 (Render 자동 재배포)
+        if: steps.guard.outputs.skip != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/asan_news.db dashboard/data.js
-          git diff --cached --quiet || git commit -m "데이터 갱신 $(date +%F)"
+          git diff --cached --quiet || git commit -m "데이터 갱신 $(TZ=Asia/Seoul date '+%F %H:%M') KST"
           git push
