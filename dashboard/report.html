@@ -86,9 +86,20 @@ select { font: inherit; font-size: 13px; color: var(--text); background: var(--s
 .empty { color: var(--muted); padding: 40px; text-align: center; }
 @media (max-width: 600px) { .wrap { padding: 0 16px; } h1 { font-size: 18px; } }
 @media print { .actions, select { display: none !important; } body { background: #fff; } section.card { break-inside: avoid; } }
+.powered { background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 11.5px; color: var(--muted); letter-spacing: .02em; }
+.powered .wrap { padding-top: 4px; padding-bottom: 4px; }
+.powered b { color: var(--brand-ink); font-weight: 700; letter-spacing: .08em; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+body > main { flex: 1 0 auto; }
+.site-footer { border-top: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-size: 13px; }
+.site-footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; padding-top: 18px; padding-bottom: 18px; }
+.site-footer .org { font-weight: 700; color: var(--text); }
+.site-footer .copy { color: var(--muted); font-size: 12px; }
+@media print { .powered { display: none; } }
 </style>
 </head>
 <body>
+<div class="powered"><div class="wrap">Powered By <b>YILOWOON</b></div></div>
 <header class="top">
   <div class="wrap">
     <img class="logo" src="assets/asan_logo.png" alt="아산시 심볼">
@@ -103,6 +114,12 @@ select { font: inherit; font-size: 13px; color: var(--text); background: var(--s
   </div>
 </header>
 <main><div class="wrap" id="root"></div></main>
+<footer class="site-footer">
+  <div class="wrap">
+    <span class="org">사단법인 도시공동체본부</span>
+    <span class="copy">© 2026 사단법인 도시공동체본부 · 아산시 홍보 사업 성과 분석 시스템</span>
+  </div>
+</footer>
 
 <script src="data.js"></script>
 <script>
