@@ -146,6 +146,12 @@ http.createServer((req, res) => {
       "Content-Type": TYPES[path.extname(file)] || "application/octet-stream",
       "Cache-Control": /\.(js|html)$/.test(file) ? "no-cache" : "public, max-age=3600",
     });
+    if (file.endsWith(".html")) {
+      // 공유 미리보기(og:image 등)는 절대 URL 이 필요하므로 접속 도메인으로 채운다
+      const proto = (req.headers["x-forwarded-proto"] || "http").split(",")[0].trim();
+      const origin = process.env.PUBLIC_URL || `${proto}://${req.headers.host}`;
+      return res.end(data.toString("utf8").replaceAll("%%ORIGIN%%", origin.replace(/\/+$/, "")));
+    }
     res.end(data);
   });
 }).listen(process.env.PORT || 10000, () => console.log("dashboard ready"));
