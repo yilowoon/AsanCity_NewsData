@@ -26,6 +26,8 @@ const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toSt
 const SESSION_HOURS = 8;
 const COOKIE = "asan_admin";
 const failures = new Map();   // ip → { count, until }  로그인 연속 실패 시 잠금
+// IP 헤더는 위조될 수 있으므로 IP와 무관한 전체 한도도 둔다: 1시간에 실패 20회 → 1시간 전체 잠금
+const globalFail = { times: [], until: 0 };
 
 const sha = v => crypto.createHash("sha256").update(String(v)).digest();
 const same = (a, b) => crypto.timingSafeEqual(sha(a), sha(b));
@@ -41,7 +43,11 @@ function isAdmin(req) {
   return !!m && Number(m[1]) > Date.now() && same(m[2], sign(m[1]));
 }
 function clientIp(req) {
-  return (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  // 프록시(Render/Cloudflare)가 넣는 값을 우선, X-Forwarded-For 는 맨 앞이 아닌 맨 뒤(프록시가 붙인 값)를 쓴다
+  const cf = req.headers["cf-connecting-ip"] || req.headers["true-client-ip"];
+  if (cf) return String(cf).trim();
+  const xff = String(req.headers["x-forwarded-for"] || "").split(",").map(v => v.trim()).filter(Boolean);
+  return xff.length ? xff[xff.length - 1] : (req.socket.remoteAddress || "");
 }
 function readBody(req) {
   return new Promise(resolve => {
@@ -60,13 +66,17 @@ async function adminApi(req, res, urlPath) {
   if (urlPath === "/api/admin/login" && req.method === "POST") {
     if (!ADMIN_ID || !ADMIN_PASSWORD) return json(res, 503, { message: "서버에 관리자 계정(ADMIN_ID, ADMIN_PASSWORD)이 설정되지 않았습니다." });
     const ip = clientIp(req), f = failures.get(ip) || { count: 0, until: 0 };
-    if (f.until > Date.now()) return json(res, 429, { message: `로그인 시도가 많아 잠겼습니다. ${Math.ceil((f.until - Date.now()) / 60000)}분 후 다시 시도하세요.` });
+    const now = Date.now();
+    if (globalFail.until > now) return json(res, 429, { message: `로그인 시도가 너무 많아 일시적으로 잠겼습니다. ${Math.ceil((globalFail.until - now) / 60000)}분 후 다시 시도하세요.` });
+    if (f.until > now) return json(res, 429, { message: `로그인 시도가 많아 잠겼습니다. ${Math.ceil((f.until - Date.now()) / 60000)}분 후 다시 시도하세요.` });
     const { id, password } = await readBody(req);
     if (same(id || "", ADMIN_ID) && same(password || "", ADMIN_PASSWORD)) {
       failures.delete(ip);
       issueSession(res, req);
       return json(res, 200, { ok: true });
     }
+    globalFail.times = globalFail.times.filter(t => now - t < 60 * 60 * 1000).concat(now);
+    if (globalFail.times.length >= 20) { globalFail.until = now + 60 * 60 * 1000; globalFail.times = []; }
     f.count += 1;
     if (f.count >= 5) { f.until = Date.now() + 15 * 60 * 1000; f.count = 0; }
     failures.set(ip, f);
@@ -134,12 +144,17 @@ async function api(req, res, urlPath) {
 }
 
 http.createServer((req, res) => {
-  const urlPath = decodeURIComponent(req.url.split("?")[0]);
+  let urlPath;
+  try {
+    urlPath = decodeURIComponent(req.url.split("?")[0]);
+  } catch (e) {
+    res.writeHead(400); return res.end("Bad request");   // 잘못된 %인코딩으로 서버가 죽지 않도록
+  }
   if (urlPath.startsWith("/api/")) return api(req, res, urlPath);
   if (urlPath === "/admin/") { res.writeHead(301, { Location: "/admin" }); return res.end(); }
   const page = urlPath === "/" || urlPath === "/admin" ? "index.html" : urlPath;
   const file = path.join(ROOT, page);
-  if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+  if (!file.startsWith(ROOT + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); return res.end("Not found"); }
     res.writeHead(200, {
@@ -155,3 +170,7 @@ http.createServer((req, res) => {
     res.end(data);
   });
 }).listen(process.env.PORT || 10000, () => console.log("dashboard ready"));
+
+// 예상치 못한 오류가 나도 서버 전체가 멈추지 않도록 기록만 남긴다
+process.on("uncaughtException", e => console.error("uncaught:", e));
+process.on("unhandledRejection", e => console.error("unhandled:", e));
