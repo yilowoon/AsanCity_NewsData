@@ -12,7 +12,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "dashboard");
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".css": "text/css; charset=utf-8" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".png": "image/png", ".css": "text/css; charset=utf-8", ".webp": "image/webp" };
 const REPO = process.env.GITHUB_REPO || "yilowoon/AsanCity_NewsData";
 const WORKFLOW = process.env.GITHUB_WORKFLOW || "daily.yml";
 const TOKEN = process.env.GITHUB_TOKEN || "";

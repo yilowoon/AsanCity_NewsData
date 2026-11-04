@@ -91,6 +91,11 @@ header.top { background: var(--surface); border-bottom: 1px solid var(--border);
 header.top .wrap { display: flex; align-items: center; gap: 16px; padding-top: 16px; padding-bottom: 16px; }
 .logo { width: 52px; height: 52px; border-radius: 10px; background: #fff; padding: 4px; object-fit: contain; flex: none; }
 .title-block h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.course-link { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 500; text-decoration: none; white-space: nowrap; color: #fff; background: linear-gradient(90deg, #7c4dff, #4f6ef7); box-shadow: 0 2px 8px rgba(100,80,240,.3); transition: filter .2s, transform .2s; }
+.course-link:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.course-link svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+@media print { .course-link { display: none; } }
 .title-block p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 .header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .updated { color: var(--muted); font-size: 12px; text-align: right; }
@@ -260,7 +265,7 @@ body > main { flex: 1 0 auto; }
   <div class="wrap">
     <img class="logo" src="assets/asan_logo.png" alt="아산시 심볼">
     <div class="title-block">
-      <h1>아산시 홍보 사업 성과 분석 시스템</h1>
+      <div class="title-row"><h1>아산시 홍보 사업 성과 분석 시스템</h1><a class="course-link" href="course.html" title="교육과정 소개 페이지로 이동"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg>교육과정 소개</a></div>
       <p>아산시 관련 온라인 뉴스 보도량 · 이슈 확산 · 페이지 조회수 모니터링</p>
     </div>
     <div class="header-actions">
