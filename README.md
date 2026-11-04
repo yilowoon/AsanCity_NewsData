@@ -33,6 +33,8 @@
 > ⭐ **유료 AI 도구 사용을 권장합니다.** 이 시스템은 AI 코딩 도구(Claude Code)와 함께 만들었고, 분석에는 Gemini API를 씁니다.
 > 무료 버전은 사용량 제한과 데이터 처리 조건 때문에 실습이 중간에 막히거나 공공 업무에 쓰기 어려울 수 있습니다. → [0. 권장 환경](#0-권장-환경-유료-ai-도구-사용-권고)
 
+> 🤖 **AI로 직접 만들어 보고 싶다면** [PROMPT.md](PROMPT.md)의 배포용 프롬프트를 Claude Code 같은 AI 코딩 도구에 순서대로 붙여 넣으세요. 지역명만 바꾸면 같은 시스템을 처음부터 만들 수 있습니다.
+
 > 💡 **처음이라면** 4번(API 키)을 건너뛰고 `python run.py sample`로 샘플 화면부터 띄워 보세요. 키 없이도 전체 화면을 볼 수 있습니다.
 
 ---
@@ -195,6 +197,7 @@ AsanCity_NewsData/
 ├── package.json              ← Render가 `npm start`로 server.js 실행
 ├── requirements.txt          ← Python 라이브러리 목록
 ├── render.yaml               ← Render 배포 설정(Blueprint)
+├── PROMPT.md                 ← AI 코딩 도구용 배포 프롬프트 (처음부터 다시 만들기)
 ├── .github/workflows/daily.yml ← 매일 자동 수집 스케줄
 └── .env                      ← 내 PC용 비밀값 (Git에 올리지 않음)
 ```
